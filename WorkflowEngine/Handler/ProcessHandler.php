@@ -3,9 +3,9 @@
 namespace WorkflowEngine\Handler;
 
 use WorkflowEngine\Event\ValidateStepEvent;
+use WorkflowEngine\Validation\Violation;
 use WorkflowEngine\Validation\ViolationList;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Security\Core\SecurityContextInterface;
 
 use WorkflowEngine\Event\StepEvent;
 use WorkflowEngine\Exception\WorkflowException;
@@ -32,14 +32,10 @@ class ProcessHandler implements ProcessHandlerInterface
     protected $storage;
 
     /**
-     * @var SecurityContextInterface
-     */
-    protected $security;
-
-    /**
      * @var EventDispatcherInterface
      */
     protected $dispatcher;
+
 
     /**
      * Construct.
@@ -55,15 +51,6 @@ class ProcessHandler implements ProcessHandlerInterface
         $this->dispatcher = $dispatcher;
     }
 
-    /**
-     * Set security context.
-     *
-     * @param SecurityContextInterface $security
-     */
-    public function setSecurityContext(SecurityContextInterface $security)
-    {
-        $this->security = $security;
-    }
 
     /**
      * {@inheritdoc}
@@ -98,6 +85,7 @@ class ProcessHandler implements ProcessHandlerInterface
             throw new WorkflowException(sprintf('The step "%s" does not contain any next state named "%s".', $currentStep->getName(), $stateName));
         }
 
+	    /** @var Step $step */
         $state = $currentStep->getNextState($stateName);
         $step = $state->getTarget();
 
@@ -133,7 +121,10 @@ class ProcessHandler implements ProcessHandlerInterface
         try {
             $this->checkCredentials($step);
         } catch (AccessDeniedException $e) {
-            return $this->storage->newModelStateError($model, $this->process->getName(), $step->getName(), array($e), $currentModelState);
+	        $violationList = new ViolationList();
+	        $violationList->add(new Violation($e->getMessage()));
+
+            return $this->storage->newModelStateError($model, $this->process->getName(), $step->getName(), $violationList, $currentModelState);
         }
 
         $event = new ValidateStepEvent($step, $model, new ViolationList());
@@ -197,6 +188,8 @@ class ProcessHandler implements ProcessHandlerInterface
      *
      * @param  string $stepName
      * @return Step
+     *
+     * @throws WorkflowException
      */
     protected function getProcessStep($stepName)
     {
@@ -217,9 +210,11 @@ class ProcessHandler implements ProcessHandlerInterface
      */
     protected function checkCredentials(Step $step)
     {
+	    /** @var \BackendUser $user */
+	    $user = \BackendUser::getInstance();
         $roles = $step->getRoles();
 
-        if (!empty($roles) && !$this->security->isGranted($roles)) {
+        if (!empty($roles) && $user->hasAccess($roles, 'workflow')) {
             throw new AccessDeniedException($step->getName());
         }
     }
