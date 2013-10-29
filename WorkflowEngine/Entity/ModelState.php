@@ -7,18 +7,14 @@ use DcGeneral\Data\ModelInterface;
 
 class ModelState extends Entity
 {
-	/**
-	 * @var int
-	 */
-	protected $id;
-
 
 	/**
 	 * Construct.
 	 */
 	public function __construct(ModelInterface $model)
 	{
-		$this->model = $model;
+		parent::__construct($model);
+
 		$this->setProperty('createdAt', time());
 		$this->setProperty('next', array());
 	}

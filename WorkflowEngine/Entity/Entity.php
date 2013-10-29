@@ -16,7 +16,7 @@ class Entity implements ModelInterface
 	/**
 	 * @var \DcGeneral\Data\ModelInterface
 	 */
-	protected $model;
+	private $model;
 
 
 	/**
