@@ -23,12 +23,6 @@ class ModelStorage
 
 
 	/**
-	 * @var string
-	 */
-	protected $stateTable = 'tl_workflow_state';
-
-
-	/**
 	 * @param ModelManager $manager
 	 * @param $providerName
 	 */
@@ -48,18 +42,16 @@ class ModelStorage
      */
     public function findCurrentModelState(ModelInterface $model, $processName)
     {
-	    $driver = $this->modelManager->getDataProvider($this->stateTable);
-
 	    $filter = Filter::create()
 		    ->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
 	        ->addEquals('processName', $processName)
 	        ->addEquals('successful', true);
 
-	    $config = $driver->getEmptyConfig();
+	    $config = $this->driver->getEmptyConfig();
 	    $config->setFilter($filter);
 	    $config->setSorting(array('id', DCGE::MODEL_SORTING_DESC));
 
-        return $driver->fetch($config);
+        return $this->driver->fetch($config);
     }
 
 
@@ -74,8 +66,6 @@ class ModelStorage
      */
     public function findAllModelStates(ModelInterface $model, $processName, $successOnly = true)
     {
-	    $driver = $this->modelManager->getDataProvider($this->stateTable);
-
 	    $filter = Filter::create()
 		    ->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
 		    ->addEquals('processName', $processName);
@@ -85,11 +75,11 @@ class ModelStorage
 		    $filter->addEquals('successful', true);
 	    }
 
-	    $config = $driver->getEmptyConfig();
+	    $config = $this->driver->getEmptyConfig();
 	    $config->setFilter($filter);
 	    $config->setSorting('createdAt', DCGE::MODEL_SORTING_ASC);
 
-	    return $driver->fetchAll($config);
+	    return $this->driver->fetchAll($config);
     }
 
 
@@ -132,14 +122,13 @@ class ModelStorage
 		    $filter->addEquals('processName', $processName);
 	    }
 
-	    $driver = $this->modelManager->getDataProvider($this->stateTable);
-	    $config = $driver->getEmptyConfig();
+	    $config = $this->driver->getEmptyConfig();
 	    $config->setFilter($filter);
 	    $config->setIdOnly(true);
 
-	    foreach($driver->fetchAll($config) as $id)
+	    foreach($this->driver->fetchAll($config) as $id)
 	    {
-		    $driver->delete($id);
+		    $this->driver->delete($id);
 	    }
     }
 
@@ -176,9 +165,7 @@ class ModelStorage
      */
     protected function createModelState(ModelInterface $model, $processName, $stepName, $previous = null)
     {
-	    $driver = $this->modelManager->getDataProvider($this->stateTable);
-
-        $modelState = new ModelState($driver->getEmptyModel());
+        $modelState = new ModelState($this->driver->getEmptyModel());
         $modelState->setWorkflowIdentifier($model->getWorkflowIdentifier());
         $modelState->setProcessName($processName);
         $modelState->setStepName($stepName);
