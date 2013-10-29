@@ -2,19 +2,18 @@
 
 namespace WorkflowEngine\Handler;
 
-use WorkflowEngine\Event\ValidateStepEvent;
-use WorkflowEngine\Validation\Violation;
-use WorkflowEngine\Validation\ViolationList;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-
+use WorkflowEngine\Entity\ModelState;
 use WorkflowEngine\Event\StepEvent;
+use WorkflowEngine\Event\ValidateStepEvent;
 use WorkflowEngine\Exception\WorkflowException;
 use WorkflowEngine\Exception\AccessDeniedException;
 use WorkflowEngine\Flow\Step;
 use WorkflowEngine\Flow\Process;
-use WorkflowEngine\Entity\ModelState;
 use WorkflowEngine\Model\ModelStorage;
 use WorkflowEngine\Model\ModelInterface;
+use WorkflowEngine\Validation\Violation;
+use WorkflowEngine\Validation\ViolationList;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Contains all logic to handle a process and its steps.
@@ -68,6 +67,7 @@ class ProcessHandler implements ProcessHandlerInterface
         return $this->reachStep($model, $step);
     }
 
+
     /**
      * {@inheritdoc}
      */
@@ -107,6 +107,7 @@ class ProcessHandler implements ProcessHandlerInterface
 
         return $modelState;
     }
+
 
     /**
      * Reach the given step.
@@ -157,6 +158,7 @@ class ProcessHandler implements ProcessHandlerInterface
         return $modelState;
     }
 
+
     /**
      * {@inheritdoc}
      */
@@ -164,6 +166,7 @@ class ProcessHandler implements ProcessHandlerInterface
     {
         return $this->storage->findCurrentModelState($model, $this->process->getName());
     }
+
 
     /**
      * {@inheritdoc}
@@ -175,6 +178,7 @@ class ProcessHandler implements ProcessHandlerInterface
         return ( $state->getSuccessful() && in_array($state->getStepName(), $this->process->getEndSteps()) );
     }
 
+
     /**
      * {@inheritdoc}
      */
@@ -182,6 +186,7 @@ class ProcessHandler implements ProcessHandlerInterface
     {
         return $this->storage->findAllModelStates($model, $this->process->getName(), $successOnly);
     }
+
 
     /**
      * Returns a step by its name.
@@ -201,6 +206,7 @@ class ProcessHandler implements ProcessHandlerInterface
 
         return $step;
     }
+
 
     /**
      * Check if the user is allowed to reach the step.
