@@ -2,8 +2,6 @@
 
 namespace WorkflowEngine\Flow;
 
-use Doctrine\Common\Collections\ArrayCollection;
-
 /**
  * Process class.
  *
@@ -12,7 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 class Process extends Node
 {
     /**
-     * @var ArrayCollection
+     * @var array
      */
     protected $steps;
 
@@ -38,7 +36,7 @@ class Process extends Node
     {
         parent::__construct($name);
 
-        $this->steps     = new ArrayCollection($steps);
+        $this->steps     = $steps;
         $this->startStep = $startStep;
         $this->endSteps  = $endSteps;
     }
@@ -54,7 +52,7 @@ class Process extends Node
     /**
      * Get process steps.
      *
-     * @return ArrayCollection
+     * @return array
      */
     public function getSteps()
     {
@@ -66,17 +64,17 @@ class Process extends Node
      *
      * @param string $name
      *
-     * @return WorkflowEngine\Flow\Step
+     * @return \WorkflowEngine\Flow\Step
      */
     public function getStep($name)
     {
-        return $this->steps->get($name);
+        return $this->steps[$name];
     }
 
     /**
      * Returns the first step.
      *
-     * @return WorkflowEngine\Flow\Step
+     * @return string
      */
     public function getStartStep()
     {
