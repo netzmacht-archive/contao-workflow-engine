@@ -29,7 +29,7 @@ public function registerBundles()
 {
     return array(
         // ...
-        new Lexik\Bundle\WorkflowBundle\LexikWorkflowBundle(),
+        new WorkflowEngine\LexikWorkflowBundle(),
         // ...
     );
 }
@@ -44,7 +44,7 @@ First of all, what's a workflow? According to wikipedia definition "a workflow c
 * a process is defined by a series of steps, and you advance through the process step by step ;
 * a step contains validations and actions, validations are executed when you try to reach the step, if those validations are successful the step has been reached and actions are executed.
 
-The workflow works on a "model" object, a model is a class that implements `Lexik\Bundle\WorkflowBundle\Model\ModelInterface`. Each time a model tries to reach a step we log it in the database to keep the steps history.
+The workflow works on a "model" object, a model is a class that implements `WorkflowEngine\Model\ModelInterface`. Each time a model tries to reach a step we log it in the database to keep the steps history.
 
 Workflow example
 ----------------
@@ -104,7 +104,7 @@ lexik_workflow:
 Model object
 ------------
 
-The workflow handles "model" objects. A "model" object is basically an instance of `Lexik\Bundle\WorkflowBundle\Model\ModelInterface`. This interface provides 2 methods:
+The workflow handles "model" objects. A "model" object is basically an instance of `WorkflowEngine\Model\ModelInterface`. This interface provides 2 methods:
 
 * `getWorkflowIdentifier()` returns an unique identifier used to store a model state in the database ;
 * `getWorkflowData()` returns an array of data to store with a model state.
@@ -116,7 +116,7 @@ Here's an example of a `PostModel` class we could use in the `post_publication` 
 
 namespace Project\Bundle\SuperBundle\Workflow\Model;
 
-use Lexik\Bundle\WorkflowBundle\Model\ModelInterface;
+use WorkflowEngine\Model\ModelInterface;
 use Project\Bundle\SuperBundle\Entity\Post;
 
 class PostModel implements ModelInterface
@@ -174,7 +174,7 @@ Step validations
 
 As you just read on the bundle introduction, we use the event dispatcher a lot for actions and validations. To validate that a step can be reached, you just need to listen to the `<process_name>.<step_name>.validate` event.
 
-You will get a `Lexik\Bundle\WorkflowBundle\Event\ValidateStepEvent` object with which you can get the step, the model and an object that manages the step violations. You can add violations to block the access to the step.
+You will get a `WorkflowEngine\Event\ValidateStepEvent` object with which you can get the step, the model and an object that manages the step violations. You can add violations to block the access to the step.
 
 In the case the step is not reached due to a validation error, a `<process_name>.<step_name>.validation_fail` event is dispatched.
 
@@ -185,8 +185,8 @@ Let's see a simple example, here I listen to the events `*.validate` and `*.vali
 
 namespace Project\Bundle\SuperBundle\Workflow\Listener;
 
-use Lexik\Bundle\WorkflowBundle\Event\StepEvent;
-use Lexik\Bundle\WorkflowBundle\Event\ValidateStepEvent;
+use WorkflowEngine\Event\StepEvent;
+use WorkflowEngine\Event\ValidateStepEvent;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -232,7 +232,7 @@ Step actions
 
 If you need to execute some logic once a step is successfully reached, you can listen to the `<process_name>.<step_name>.reached` event.
 
-You will get a `Lexik\Bundle\WorkflowBundle\Event\StepEvent` object with which you can get the step, the model and the last model state.
+You will get a `WorkflowEngine\Event\StepEvent` object with which you can get the step, the model and the last model state.
 
 Let's see a simple example, here I listen to `*.reached` event for the step `published` from the `post_publication` process.
 
@@ -241,7 +241,7 @@ Let's see a simple example, here I listen to `*.reached` event for the step `pub
 
 namespace Project\Bundle\SuperBundle\Workflow\Listener;
 
-use Lexik\Bundle\WorkflowBundle\Event\StepEvent;
+use WorkflowEngine\Event\StepEvent;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -327,4 +327,4 @@ if ( ! $modelState->getSuccessful() ) {
 }
 ```
 
-Note that the `start()` and `reachNextState()` methods return an instance of `Lexik\Bundle\WorkflowBundle\Entity\ModelState`. This entity represents a state for a given model and process.
+Note that the `start()` and `reachNextState()` methods return an instance of `WorkflowEngine\Entity\ModelState`. This entity represents a state for a given model and process.
