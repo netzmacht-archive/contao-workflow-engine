@@ -137,8 +137,8 @@ class ProcessHandler implements ProcessHandlerInterface
 
             // update model status
             if ($step->hasModelStatus()) {
-                list($method, $constant) = $step->getModelStatus();
-                $model->$method(constant($constant));
+                list($method, $status) = $step->getModelStatus();
+                $model->$method($status);
             }
 
             $eventName = sprintf('%s.%s.reached', $this->process->getName(), $step->getName());
@@ -220,7 +220,7 @@ class ProcessHandler implements ProcessHandlerInterface
 	    $user = \BackendUser::getInstance();
         $roles = $step->getRoles();
 
-        if (!empty($roles) && $user->hasAccess($roles, 'workflow')) {
+        if (!empty($roles) && !$user->isAdmin && $user->hasAccess($roles, 'workflow')) {
             throw new AccessDeniedException($step->getName());
         }
     }
