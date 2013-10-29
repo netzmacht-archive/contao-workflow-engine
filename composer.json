@@ -28,9 +28,10 @@
         }
     ],
     "require": {
-        "php": ">=5.3.3"
+        "php": ">=5.3.3",
+        "contao-legacy/dc_general": "~1.0.0.7"
     },
     "autoload": {
         "psr-0": { "WorkflowEngine": "" }
-    },
+    }
 }
