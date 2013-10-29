@@ -2,6 +2,7 @@
 
 namespace WorkflowEngine\Entity;
 
+use DcGeneral\Data\DCGE;
 use DcGeneral\Data\ModelInterface;
 
 /**
@@ -104,6 +105,11 @@ class Entity implements ModelInterface
 	 */
 	public function setId($mixId)
 	{
+		if($this->getId() != $mixId)
+		{
+			$this->setMeta(DCGE::MODEL_IS_CHANGED, true);
+		}
+
 		$this->setId($mixId);
 	}
 
@@ -119,6 +125,11 @@ class Entity implements ModelInterface
 	 */
 	public function setProperty($strPropertyName, $varValue)
 	{
+		if($this->getProperty($strPropertyName) != $varValue)
+		{
+			$this->setMeta(DCGE::MODEL_IS_CHANGED, true);
+		}
+
 		$this->setProperty($strPropertyName, $varValue);
 	}
 
