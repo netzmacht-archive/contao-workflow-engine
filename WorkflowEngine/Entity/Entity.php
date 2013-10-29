@@ -110,7 +110,7 @@ class Entity implements ModelInterface
 			$this->setMeta(DCGE::MODEL_IS_CHANGED, true);
 		}
 
-		$this->setId($mixId);
+		$this->model->setId($mixId);
 	}
 
 
@@ -130,7 +130,7 @@ class Entity implements ModelInterface
 			$this->setMeta(DCGE::MODEL_IS_CHANGED, true);
 		}
 
-		$this->setProperty($strPropertyName, $varValue);
+		$this->model->setProperty($strPropertyName, $varValue);
 	}
 
 
@@ -143,7 +143,10 @@ class Entity implements ModelInterface
 	 */
 	public function setPropertiesAsArray($arrProperties)
 	{
-		$this->setPropertiesAsArray($arrProperties);
+		foreach($arrProperties as $strName => $mixedValue)
+		{
+			$this->setProperty($strName, $mixedValue);
+		}
 	}
 
 
@@ -158,7 +161,7 @@ class Entity implements ModelInterface
 	 */
 	public function setMeta($strMetaName, $varValue)
 	{
-		$this->setMeta($strMetaName, $varValue);
+		$this->model->setMeta($strMetaName, $varValue);
 	}
 
 
