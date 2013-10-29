@@ -9,8 +9,8 @@
 namespace WorkflowEngine\Model;
 
 use DcGeneral\Data\DCGE;
-use DcGeneral\Data\DefaultDriver;
 use DcGeneral\Data\ModelInterface;
+use WorkflowEngine\Registry;
 
 
 /**
@@ -30,9 +30,15 @@ class ModelManager
 
 
 	/**
-	 * @var \DcGeneral\Data\DriverInterface[]
+	 * @var Registry
 	 */
-	protected $drivers = array();
+	protected $registry;
+
+
+	public function __construct(Registry $registry)
+	{
+		$this->registry = $registry;
+	}
 
 
 	/**
@@ -66,34 +72,14 @@ class ModelManager
 
 
 	/**
-	 * @param $table
-	 *
-	 * @return \DcGeneral\Data\DriverInterface
-	 */
-	public function getDataProvider($table)
-	{
-		// FIXME: We need to get them from the DcGeneral, we should at least recognize the config
-
-		if(!isset($this->drivers[$table]))
-		{
-			$driver = new DefaultDriver();
-			$driver->setBaseConfig(array('source' => $table));
-
-			$this->drivers[$table] = $driver;
-		}
-
-		return $this->drivers[$table];
-	}
-
-
-	/**
 	 * @param ModelInterface $model
 	 */
 	protected function doFlush(ModelInterface $model)
 	{
+		$driver = $this->registry->getDataProvider($model->getProviderName());
+
 		if($model->getMeta(static::MODEL_DELETE))
 		{
-			$driver = $this->getDataProvider($model->getProviderName());
 			$driver->delete($model);
 
 			$model->setMeta(DCGE::MODEL_IS_CHANGED, false);
@@ -102,7 +88,6 @@ class ModelManager
 		}
 		elseif($model->getMeta(DCGE::MODEL_IS_CHANGED))
 		{
-			$driver = $this->getDataProvider($model->getProviderName());
 			$model->setProperty('tstamp', time());
 			$driver->save($model);
 

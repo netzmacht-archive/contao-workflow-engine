@@ -2,6 +2,7 @@
 
 namespace WorkflowEngine\Handler;
 
+use WorkflowEngine\Registry;
 use WorkflowEngine\Entity\ModelState;
 use WorkflowEngine\Event\StepEvent;
 use WorkflowEngine\Event\ValidateStepEvent;
@@ -13,7 +14,6 @@ use WorkflowEngine\Model\ModelStorage;
 use WorkflowEngine\Model\ModelInterface;
 use WorkflowEngine\Validation\Violation;
 use WorkflowEngine\Validation\ViolationList;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Contains all logic to handle a process and its steps.
@@ -31,23 +31,20 @@ class ProcessHandler implements ProcessHandlerInterface
     protected $storage;
 
     /**
-     * @var EventDispatcherInterface
+     * @var Registry
      */
-    protected $dispatcher;
+    protected $registry;
 
 
-    /**
-     * Construct.
-     *
-     * @param Process                  $process
-     * @param ModelStorage             $storage
-     * @param EventDispatcherInterface $dispatcher
-     */
-    public function __construct(Process $process, ModelStorage $storage, EventDispatcherInterface $dispatcher)
+	/**
+	 * @param Process $process
+	 * @param Registry $registry
+	 */
+	public function __construct(Process $process, Registry $registry)
     {
         $this->process = $process;
-        $this->storage = $storage;
-        $this->dispatcher = $dispatcher;
+	    $this->registry = $registry;
+        $this->storage = $registry->getStateStorage();
     }
 
 
@@ -85,6 +82,8 @@ class ProcessHandler implements ProcessHandlerInterface
             throw new WorkflowException(sprintf('The step "%s" does not contain any next state named "%s".', $currentStep->getName(), $stateName));
         }
 
+	    $dispatcher = $this->registry->getEventDispatcher($model->getEntity()->getProviderName());
+
 	    /** @var Step $step */
         $state = $currentStep->getNextState($stateName);
         $step = $state->getTarget();
@@ -92,7 +91,7 @@ class ProcessHandler implements ProcessHandlerInterface
         // pre validations
         $event = new ValidateStepEvent($step, $model, new ViolationList());
         $eventName = sprintf('%s.%s.%s.pre_validation', $this->process->getName(), $currentStep->getName(), $stateName);
-        $this->dispatcher->dispatch($eventName, $event);
+	    $dispatcher->dispatch($eventName, $event);
 
         $modelState = null;
 
@@ -100,7 +99,7 @@ class ProcessHandler implements ProcessHandlerInterface
             $modelState = $this->storage->newModelStateError($model, $this->process->getName(), $step->getName(), $event->getViolationList(), $currentModelState);
 
             $eventName = sprintf('%s.%s.%s.pre_validation_fail', $this->process->getName(), $currentStep->getName(), $stateName);
-            $this->dispatcher->dispatch($eventName, new StepEvent($step, $model, $modelState));
+	        $dispatcher->dispatch($eventName, new StepEvent($step, $model, $modelState));
         } else {
             $modelState = $this->reachStep($model, $step, $currentModelState);
         }
@@ -128,9 +127,11 @@ class ProcessHandler implements ProcessHandlerInterface
             return $this->storage->newModelStateError($model, $this->process->getName(), $step->getName(), $violationList, $currentModelState);
         }
 
+	    $dispatcher = $this->registry->getEventDispatcher($model->getEntity()->getProviderName());
+
         $event = new ValidateStepEvent($step, $model, new ViolationList());
         $eventName = sprintf('%s.%s.validate', $this->process->getName(), $step->getName());
-        $this->dispatcher->dispatch($eventName, $event);
+	    $dispatcher->dispatch($eventName, $event);
 
         if (0 === count($event->getViolationList())) {
             $modelState = $this->storage->newModelStateSuccess($model, $this->process->getName(), $step->getName(), $currentModelState);
@@ -142,12 +143,12 @@ class ProcessHandler implements ProcessHandlerInterface
             }
 
             $eventName = sprintf('%s.%s.reached', $this->process->getName(), $step->getName());
-            $this->dispatcher->dispatch($eventName, new StepEvent($step, $model, $modelState));
+	        $dispatcher->dispatch($eventName, new StepEvent($step, $model, $modelState));
         } else {
             $modelState = $this->storage->newModelStateError($model, $this->process->getName(), $step->getName(), $event->getViolationList(), $currentModelState);
 
             $eventName = sprintf('%s.%s.validation_fail', $this->process->getName(), $step->getName());
-            $this->dispatcher->dispatch($eventName, new StepEvent($step, $model, $modelState));
+	        $dispatcher->dispatch($eventName, new StepEvent($step, $model, $modelState));
 
             if ($step->getOnInvalid()) {
                 $step = $this->getProcessStep($step->getOnInvalid());

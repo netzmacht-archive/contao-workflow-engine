@@ -4,6 +4,7 @@ namespace WorkflowEngine\Model;
 
 use DcaTools\Model\Filter;
 use DcGeneral\Data\DCGE;
+use DcGeneral\Data\DriverInterface;
 use WorkflowEngine\Entity\Entity;
 use WorkflowEngine\Entity\ModelState;
 use WorkflowEngine\Validation\ViolationList;
@@ -26,12 +27,12 @@ class ModelStorage
 
 	/**
 	 * @param ModelManager $manager
-	 * @param $providerName
+	 * @param $driver
 	 */
-	public function __construct(ModelManager $manager, $providerName)
+	public function __construct(ModelManager $manager, DriverInterface $driver)
 	{
 		$this->modelManager = $manager;
-		$this->driver = $manager->getDataProvider($providerName);
+		$this->driver = $driver;
 	}
 
 
@@ -192,6 +193,7 @@ class ModelStorage
 		$modelState->setData($model->getWorkflowData());
 		$modelState->setProperty(DCGE::MODEL_PTABLE, $model->getEntity()->getProviderName());
 		$modelState->setProperty(DCGE::MODEL_PID, $model->getEntity()->getId());
+		$modelState->setMeta(DCGE::MODEL_IS_CHANGED, true);
 
 		if ($previous instanceof ModelState)
 		{
