@@ -94,7 +94,7 @@ class ModelStorage
 
 		foreach($collection as $model)
 		{
-			$modelState = new ModelState(new Entity($model));
+			$modelState = new ModelState($model);
 			$this->modelManager->persist($model);
 
 			$newCollection->add($modelState);
@@ -124,7 +124,7 @@ class ModelStorage
 		$this->modelManager->persist($modelState);
 		$this->modelManager->flush($modelState);
 
-		return new ModelState(new Entity($modelState));
+		return new ModelState($modelState);
 	}
 
 	/**
