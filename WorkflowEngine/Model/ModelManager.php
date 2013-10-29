@@ -49,27 +49,19 @@ class ModelManager
 	/**
 	 * flush changed
 	 */
-	public function flush()
+	public function flush(ModelInterface $model=null)
 	{
-		foreach($this->models as $model)
+		if($model === null)
 		{
-			if($model->getMeta(static::MODEL_DELETE))
+			foreach($this->models as $model)
 			{
-				$driver = $this->getDataProvider($model->getProviderName());
-				$driver->delete($model);
-
-				$model->setMeta(DCGE::MODEL_IS_CHANGED, false);
-				$model->setMeta(static::MODEL_IS_DELETED, true);
-				$model->setMeta(static::MODEL_DELETE, false);
-			}
-			elseif($model->getMeta(DCGE::MODEL_IS_CHANGED))
-			{
-				$driver = $this->getDataProvider($model->getProviderName());
-				$driver->save($model);
-
-				$model->setMeta(DCGE::MODEL_IS_CHANGED, false);
+				$this->doFlush($model);
 			}
 		}
+		else {
+			$this->doFlush($model);
+		}
+
 	}
 
 
@@ -91,5 +83,29 @@ class ModelManager
 		}
 
 		return $this->drivers[$table];
+	}
+
+
+	/**
+	 * @param ModelInterface $model
+	 */
+	protected function doFlush(ModelInterface $model)
+	{
+		if($model->getMeta(static::MODEL_DELETE))
+		{
+			$driver = $this->getDataProvider($model->getProviderName());
+			$driver->delete($model);
+
+			$model->setMeta(DCGE::MODEL_IS_CHANGED, false);
+			$model->setMeta(static::MODEL_IS_DELETED, true);
+			$model->setMeta(static::MODEL_DELETE, false);
+		}
+		elseif($model->getMeta(DCGE::MODEL_IS_CHANGED))
+		{
+			$driver = $this->getDataProvider($model->getProviderName());
+			$driver->save($model);
+
+			$model->setMeta(DCGE::MODEL_IS_CHANGED, false);
+		}
 	}
 } 
