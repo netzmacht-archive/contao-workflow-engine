@@ -2,66 +2,95 @@
 
 namespace WorkflowEngine\Model;
 
+use DcGeneral\Data\DCGE;
 use WorkflowEngine\Entity\ModelState;
 use WorkflowEngine\Validation\ViolationList;
 
-use Doctrine\ORM\EntityManager;
 
 class ModelStorage
 {
-    /**
-     * @var Doctrine\ORM\EntityManager
-     */
-    protected $om;
 
-    /**
-     * @var Doctrine\ORM\EntityRepository
-     */
-    protected $repository;
+	/**
+	 * @var ModelManager
+	 */
+	protected $modelManager;
 
-    /**
-     * Construct.
-     *
-     * @param EntityManager $om
-     * @param string        $entityClass
-     */
-    public function __construct(EntityManager $om, $entityClass)
+	/**
+	 * @var \DcGeneral\Data\DriverInterface
+	 */
+	protected $driver;
+
+
+	/**
+	 * @var string
+	 */
+	protected $stateTable = 'tl_workflow_state';
+
+
+	/**
+	 * @param ModelManager $manager
+	 * @param $providerName
+	 */
+	public function __construct(ModelManager $manager, $providerName)
     {
-        $this->om = $om;
-        $this->repository = $this->om->getRepository($entityClass);
+        $this->modelManager = $manager;
+	    $this->driver = $manager->getDataProvider($providerName);
     }
+
 
     /**
      * Returns the current model state.
      *
      * @param  ModelInterface                                $model
      * @param  string                                        $processName
-     * @return WorkflowEngine\Entity\ModelState
+     * @return \WorkflowEngine\Entity\ModelState
      */
     public function findCurrentModelState(ModelInterface $model, $processName)
     {
-        return $this->repository->findLatestModelState(
-            $model->getWorkflowIdentifier(),
-            $processName
-        );
+	    $driver = $this->modelManager->getDataProvider($this->stateTable);
+
+	    $filter = Filter::create()
+		    ->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
+	        ->addEquals('processName', $processName)
+	        ->addEquals('successful', true);
+
+	    $config = $driver->getEmptyConfig();
+	    $config->setFilter($filter);
+	    $config->setSorting(array('id', DCGE::MODEL_SORTING_DESC));
+
+        return $driver->fetch($config);
     }
+
 
     /**
      * Returns all model states.
      *
      * @param  ModelInterface $model
      * @param  string         $processName
-     * @param  string         $successOnly
-     * @return array
+     * @param  bool         $successOnly
+     *
+     * @return \DcGeneral\Data\CollectionInterface
      */
     public function findAllModelStates(ModelInterface $model, $processName, $successOnly = true)
     {
-        return $this->repository->findModelStates(
-            $model->getWorkflowIdentifier(),
-            $processName,
-            $successOnly
-        );
+	    $driver = $this->modelManager->getDataProvider($this->stateTable);
+
+	    $filter = Filter::create()
+		    ->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
+		    ->addEquals('processName', $processName);
+
+	    if($successOnly)
+	    {
+		    $filter->addEquals('successful', true);
+	    }
+
+	    $config = $driver->getEmptyConfig();
+	    $config->setFilter($filter);
+	    $config->setSorting('createdAt', DCGE::MODEL_SORTING_ASC);
+
+	    return $driver->fetchAll($config);
     }
+
 
     /**
      * Create a new invalid model state.
@@ -80,8 +109,8 @@ class ModelStorage
         $modelState->setSuccessful(false);
         $modelState->setErrors($violationList->toArray());
 
-        $this->om->persist($modelState);
-        $this->om->flush($modelState);
+	    $this->modelManager->persist($modelState);
+	    $this->modelManager->flush($modelState);
 
         return $modelState;
     }
@@ -94,11 +123,25 @@ class ModelStorage
      */
     public function deleteAllModelStates(ModelInterface $model, $processName = null)
     {
-        return $this->repository->deleteModelStates(
-            $model->getWorkflowIdentifier(),
-            $processName
-        );
+	    $filter = Filter::create()
+		    ->addEquals('workflowIdentifier', $model->getWorkflowIdentifier());
+
+	    if($processName !== null)
+	    {
+		    $filter->addEquals('processName', $processName);
+	    }
+
+	    $driver = $this->modelManager->getDataProvider($this->stateTable);
+	    $config = $driver->getEmptyConfig();
+	    $config->setFilter($filter);
+	    $config->setIdOnly(true);
+
+	    foreach($driver->fetchAll($config) as $id)
+	    {
+		    $driver->delete($id);
+	    }
     }
+
 
     /**
      * Create a new successful model state.
@@ -114,11 +157,12 @@ class ModelStorage
         $modelState = $this->createModelState($model, $processName, $stepName, $previous);
         $modelState->setSuccessful(true);
 
-        $this->om->persist($modelState);
-        $this->om->flush($modelState);
+	    $this->modelManager->persist($modelState);
+	    $this->modelManager->flush($modelState);
 
         return $modelState;
     }
+
 
     /**
      * Create a new model state.
@@ -131,13 +175,16 @@ class ModelStorage
      */
     protected function createModelState(ModelInterface $model, $processName, $stepName, $previous = null)
     {
-        $modelState = new ModelState();
+	    $driver = $this->modelManager->getDataProvider($this->stateTable);
+
+        $modelState = new ModelState($driver->getEmptyModel());
         $modelState->setWorkflowIdentifier($model->getWorkflowIdentifier());
         $modelState->setProcessName($processName);
         $modelState->setStepName($stepName);
         $modelState->setData($model->getWorkflowData());
 
-        if ($previous instanceof ModelState) {
+        if ($previous instanceof ModelState)
+        {
             $modelState->setPrevious($previous);
         }
 
