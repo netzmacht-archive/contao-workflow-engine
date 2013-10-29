@@ -2,10 +2,8 @@
 
 namespace WorkflowEngine;
 
-
 use DcaTools\Event\EventDispatcher;
 use DcaTools\Helper\BackendBindings;
-use DcGeneral\Data\DefaultDriver;
 use DcGeneral\Data\DriverInterface;
 use WorkflowEngine\Flow\Process;
 use WorkflowEngine\Flow\Step;
@@ -147,23 +145,26 @@ class Registry
 	{
 		if(!isset($this->drivers[$dataContainer]))
 		{
-			if(!array_key_exists($dataContainer, $GLOBALS['TL_DCA']))
+			if(!isset($GLOBALS['TL_DCA'][$dataContainer]))
 			{
 				BackendBindings::loadLanguageFile($dataContainer);
 				BackendBindings::loadDataContainer($dataContainer);
 			}
 
 			$config = $GLOBALS['TL_DCA'][$dataContainer]['dca_config'];
+			$class = '\DcGeneral\Data\DefaultDriver';
 
-			if (array_key_exists('class', $config))
+			if(isset($config['data_provider']['default']))
 			{
-				$class = $config['class'];
-				$this->drivers[$dataContainer] = $class();
+				$config = $config['data_provider']['default'];
+
+				if(array_key_exists('class', $config))
+				{
+					$class = $config['class'];
+				}
 			}
-			else
-			{
-				$this->drivers[$dataContainer] = new DefaultDriver();
-			}
+
+			$this->drivers[$dataContainer] = $class();
 		}
 
 		return $this->drivers[$dataContainer];
