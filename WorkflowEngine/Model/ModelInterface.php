@@ -21,7 +21,7 @@ interface ModelInterface
 
 
 	/**
-	 * @return \Workflow\Entity\Entity
+	 * @return \WorkflowEngine\Entity\Entity
 	 */
 	public function getEntity();
 

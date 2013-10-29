@@ -103,6 +103,7 @@ class ModelManager
 		elseif($model->getMeta(DCGE::MODEL_IS_CHANGED))
 		{
 			$driver = $this->getDataProvider($model->getProviderName());
+			$model->setProperty('tstamp', time());
 			$driver->save($model);
 
 			$model->setMeta(DCGE::MODEL_IS_CHANGED, false);

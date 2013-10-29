@@ -2,7 +2,9 @@
 
 namespace WorkflowEngine\Model;
 
+use DcaTools\Model\Filter;
 use DcGeneral\Data\DCGE;
+use WorkflowEngine\Entity\Entity;
 use WorkflowEngine\Entity\ModelState;
 use WorkflowEngine\Validation\ViolationList;
 
@@ -27,155 +29,175 @@ class ModelStorage
 	 * @param $providerName
 	 */
 	public function __construct(ModelManager $manager, $providerName)
-    {
-        $this->modelManager = $manager;
-	    $this->driver = $manager->getDataProvider($providerName);
-    }
+	{
+		$this->modelManager = $manager;
+		$this->driver = $manager->getDataProvider($providerName);
+	}
 
 
-    /**
-     * Returns the current model state.
-     *
-     * @param  ModelInterface                                $model
-     * @param  string                                        $processName
-     * @return \WorkflowEngine\Entity\ModelState
-     */
-    public function findCurrentModelState(ModelInterface $model, $processName)
-    {
-	    $filter = Filter::create()
-		    ->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
-	        ->addEquals('processName', $processName)
-	        ->addEquals('successful', true);
+	/**
+	 * Returns the current model state.
+	 *
+	 * @param  ModelInterface                                $model
+	 * @param  string                                        $processName
+	 * @return \WorkflowEngine\Entity\ModelState
+	 */
+	public function findCurrentModelState(ModelInterface $model, $processName)
+	{
+		$filter = Filter::create()
+			->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
+			->addEquals('processName', $processName)
+			->addEquals('successful', true);
 
-	    $config = $this->driver->getEmptyConfig();
-	    $config->setFilter($filter);
-	    $config->setSorting(array('id', DCGE::MODEL_SORTING_DESC));
+		$config = $this->driver->getEmptyConfig();
+		$config->setFilter($filter->getFilter());
+		$config->setSorting(array('id' => DCGE::MODEL_SORTING_DESC));
 
-        return $this->driver->fetch($config);
-    }
+		$entity =  $this->driver->fetch($config);
 
+		if($entity === null)
+		{
+			return null;
+		}
 
-    /**
-     * Returns all model states.
-     *
-     * @param  ModelInterface $model
-     * @param  string         $processName
-     * @param  bool         $successOnly
-     *
-     * @return \DcGeneral\Data\CollectionInterface
-     */
-    public function findAllModelStates(ModelInterface $model, $processName, $successOnly = true)
-    {
-	    $filter = Filter::create()
-		    ->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
-		    ->addEquals('processName', $processName);
-
-	    if($successOnly)
-	    {
-		    $filter->addEquals('successful', true);
-	    }
-
-	    $config = $this->driver->getEmptyConfig();
-	    $config->setFilter($filter);
-	    $config->setSorting('createdAt', DCGE::MODEL_SORTING_ASC);
-
-	    return $this->driver->fetchAll($config);
-    }
+		return new ModelState(new Entity($entity));
+	}
 
 
-    /**
-     * Create a new invalid model state.
-     *
-     * @param ModelInterface  $model
-     * @param string          $processName
-     * @param string          $stepName
-     * @param ViolationList   $violationList
-     * @param null|ModelState $previous
-     *
-     * @return ModelState
-     */
-    public function newModelStateError(ModelInterface $model, $processName, $stepName, ViolationList $violationList, $previous = null)
-    {
-        $modelState = $this->createModelState($model, $processName, $stepName, $previous);
-        $modelState->setSuccessful(false);
-        $modelState->setErrors($violationList->toArray());
+	/**
+	 * Returns all model states.
+	 *
+	 * @param  ModelInterface $model
+	 * @param  string         $processName
+	 * @param  bool         $successOnly
+	 *
+	 * @return \DcGeneral\Data\CollectionInterface
+	 */
+	public function findAllModelStates(ModelInterface $model, $processName, $successOnly = true)
+	{
+		$filter = Filter::create()
+			->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
+			->addEquals('processName', $processName);
 
-	    $this->modelManager->persist($modelState);
-	    $this->modelManager->flush($modelState);
+		if($successOnly)
+		{
+			$filter->addEquals('successful', true);
+		}
 
-        return $modelState;
-    }
+		$config = $this->driver->getEmptyConfig();
+		$config->setFilter($filter->getFilter());
+		$config->setSorting(array('createdAt' => DCGE::MODEL_SORTING_ASC));
 
-    /**
-     * Delete all model states.
-     *
-     * @param ModelInterface $model
-     * @param string         $processName
-     */
-    public function deleteAllModelStates(ModelInterface $model, $processName = null)
-    {
-	    $filter = Filter::create()
-		    ->addEquals('workflowIdentifier', $model->getWorkflowIdentifier());
+		$collection = $this->driver->fetchAll($config);
+		$newCollection = $this->driver->getEmptyCollection();
 
-	    if($processName !== null)
-	    {
-		    $filter->addEquals('processName', $processName);
-	    }
+		foreach($collection as $model)
+		{
+			$modelState = new ModelState(new Entity($model));
+			$this->modelManager->persist($model);
 
-	    $config = $this->driver->getEmptyConfig();
-	    $config->setFilter($filter);
-	    $config->setIdOnly(true);
+			$newCollection->add($modelState);
+		}
 
-	    foreach($this->driver->fetchAll($config) as $id)
-	    {
-		    $this->driver->delete($id);
-	    }
-    }
+		return $newCollection;
+	}
 
 
-    /**
-     * Create a new successful model state.
-     *
-     * @param  ModelInterface                                 $model
-     * @param  string                                         $processName
-     * @param  string                                         $stepName
-     * @param  ModelState                                     $previous
-     * @return \WorkflowEngine\Entity\ModelState
-     */
-    public function newModelStateSuccess(ModelInterface $model, $processName, $stepName, $previous = null)
-    {
-        $modelState = $this->createModelState($model, $processName, $stepName, $previous);
-        $modelState->setSuccessful(true);
+	/**
+	 * Create a new invalid model state.
+	 *
+	 * @param ModelInterface  $model
+	 * @param string          $processName
+	 * @param string          $stepName
+	 * @param ViolationList   $violationList
+	 * @param null|ModelState $previous
+	 *
+	 * @return ModelState
+	 */
+	public function newModelStateError(ModelInterface $model, $processName, $stepName, ViolationList $violationList, $previous = null)
+	{
+		$modelState = $this->createModelState($model, $processName, $stepName, $previous);
+		$modelState->setSuccessful(false);
+		$modelState->setErrors($violationList->toArray());
 
-	    $this->modelManager->persist($modelState);
-	    $this->modelManager->flush($modelState);
+		$this->modelManager->persist($modelState);
+		$this->modelManager->flush($modelState);
 
-        return $modelState;
-    }
+		return new ModelState(new Entity($modelState));
+	}
+
+	/**
+	 * Delete all model states.
+	 *
+	 * @param ModelInterface $model
+	 * @param string         $processName
+	 */
+	public function deleteAllModelStates(ModelInterface $model, $processName = null)
+	{
+		$filter = Filter::create()
+			->addEquals('workflowIdentifier', $model->getWorkflowIdentifier());
+
+		if($processName !== null)
+		{
+			$filter->addEquals('processName', $processName);
+		}
+
+		$config = $this->driver->getEmptyConfig();
+		$config->setFilter($filter->getFilter());
+		$config->setIdOnly(true);
+
+		foreach($this->driver->fetchAll($config) as $id)
+		{
+			$this->driver->delete($id);
+		}
+	}
 
 
-    /**
-     * Create a new model state.
-     *
-     * @param  ModelInterface                                 $model
-     * @param  string                                         $processName
-     * @param  string                                         $stepName
-     * @param  ModelState                                     $previous
-     * @return \WorkflowEngine\Entity\ModelState
-     */
-    protected function createModelState(ModelInterface $model, $processName, $stepName, $previous = null)
-    {
-        $modelState = new ModelState($this->driver->getEmptyModel());
-        $modelState->setWorkflowIdentifier($model->getWorkflowIdentifier());
-        $modelState->setProcessName($processName);
-        $modelState->setStepName($stepName);
-        $modelState->setData($model->getWorkflowData());
+	/**
+	 * Create a new successful model state.
+	 *
+	 * @param  ModelInterface                                 $model
+	 * @param  string                                         $processName
+	 * @param  string                                         $stepName
+	 * @param  ModelState                                     $previous
+	 * @return \WorkflowEngine\Entity\ModelState
+	 */
+	public function newModelStateSuccess(ModelInterface $model, $processName, $stepName, $previous = null)
+	{
+		$modelState = $this->createModelState($model, $processName, $stepName, $previous);
+		$modelState->setSuccessful(true);
 
-        if ($previous instanceof ModelState)
-        {
-            $modelState->setPrevious($previous);
-        }
+		$this->modelManager->persist($modelState);
+		$this->modelManager->flush($modelState);
 
-        return $modelState;
-    }
+		return $modelState;
+	}
+
+
+	/**
+	 * Create a new model state.
+	 *
+	 * @param  ModelInterface                                 $model
+	 * @param  string                                         $processName
+	 * @param  string                                         $stepName
+	 * @param  ModelState                                     $previous
+	 * @return \WorkflowEngine\Entity\ModelState
+	 */
+	protected function createModelState(ModelInterface $model, $processName, $stepName, $previous = null)
+	{
+		$modelState = new ModelState($this->driver->getEmptyModel());
+		$modelState->setWorkflowIdentifier($model->getWorkflowIdentifier());
+		$modelState->setProcessName($processName);
+		$modelState->setStepName($stepName);
+		$modelState->setData($model->getWorkflowData());
+		$modelState->setProperty(DCGE::MODEL_PTABLE, $model->getEntity()->getProviderName());
+		$modelState->setProperty(DCGE::MODEL_PID, $model->getEntity()->getId());
+
+		if ($previous instanceof ModelState)
+		{
+			$modelState->setPrevious($previous);
+		}
+
+		return $modelState;
+	}
 }
