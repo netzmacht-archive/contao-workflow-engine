@@ -52,7 +52,7 @@ class Process extends Node
     /**
      * Get process steps.
      *
-     * @return array
+     * @return Step[]
      */
     public function getSteps()
     {
@@ -90,4 +90,21 @@ class Process extends Node
     {
         return $this->endSteps;
     }
+
+
+	/**
+	 * Return all used roles in the defined steps
+	 */
+	public function getRoles()
+	{
+		$roles = array();
+
+		foreach($this->getSteps() as $step)
+		{
+			$roles = array_merge($roles, $step->getRoles());
+		}
+
+		return array_unique($roles);
+	}
+
 }
