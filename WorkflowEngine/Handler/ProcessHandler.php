@@ -222,7 +222,7 @@ class ProcessHandler implements ProcessHandlerInterface
     protected function checkCredentials(ModelInterface $model, Step $step)
     {
 	    // auto grant access if no roles are defined
-	    $grant = count($step->getRoles());
+	    $grant = (count($step->getRoles()) == 0);
 	    $event = new SecurityEvent($step, $model, $grant);
 
 	    $this->registry->getEventDispatcher($model->getEntity()->getProviderName())->dispatch('check_credentials', $event);
