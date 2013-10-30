@@ -164,7 +164,11 @@ class Registry
 				}
 			}
 
-			$this->drivers[$dataContainer] = $class();
+			/** @var \DcGeneral\Data\DriverInterface $driver */
+			$driver = new $class();
+			$driver->setBaseConfig(array('source' => $dataContainer));
+
+			$this->drivers[$dataContainer] = $driver;
 		}
 
 		return $this->drivers[$dataContainer];
