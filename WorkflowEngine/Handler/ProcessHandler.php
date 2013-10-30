@@ -2,6 +2,7 @@
 
 namespace WorkflowEngine\Handler;
 
+use WorkflowEngine\Event\SecurityEvent;
 use WorkflowEngine\Registry;
 use WorkflowEngine\Entity\ModelState;
 use WorkflowEngine\Event\StepEvent;
@@ -119,8 +120,10 @@ class ProcessHandler implements ProcessHandlerInterface
     protected function reachStep(ModelInterface $model, Step $step, ModelState $currentModelState = null)
     {
         try {
-            $this->checkCredentials($step);
-        } catch (AccessDeniedException $e) {
+            $this->checkCredentials($model, $step);
+        }
+        catch (AccessDeniedException $e)
+        {
 	        $violationList = new ViolationList();
 	        $violationList->add(new Violation($e->getMessage()));
 
@@ -212,16 +215,20 @@ class ProcessHandler implements ProcessHandlerInterface
     /**
      * Check if the user is allowed to reach the step.
      *
-     * @param  Step                  $step
+     * @param  ModelInterface $model
+     * @param  Step $step
      * @throws AccessDeniedException
      */
-    protected function checkCredentials(Step $step)
+    protected function checkCredentials(ModelInterface $model, Step $step)
     {
-	    /** @var \BackendUser $user */
-	    $user = \BackendUser::getInstance();
-        $roles = $step->getRoles();
+	    // auto grant access if no roles are defined
+	    $grant = count($step->getRoles());
+	    $event = new SecurityEvent($step, $model, $grant);
 
-        if (!empty($roles) && !$user->isAdmin && $user->hasAccess($roles, 'workflow')) {
+	    $this->registry->getEventDispatcher($model->getEntity()->getProviderName())->dispatch('check_credentials', $event);
+
+        if (!$event->isGranted())
+        {
             throw new AccessDeniedException($step->getName());
         }
     }
