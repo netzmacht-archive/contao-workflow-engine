@@ -16,6 +16,7 @@ use Workflow\Handler\EnvironmentFactory;
 use Workflow\Model\Model;
 use Workflow\Entity\ModelState;
 use Workflow\Exception\WorkflowException;
+use Workflow\Service\ServiceFactory;
 
 class Workflow
 {
@@ -46,12 +47,6 @@ class Workflow
 	 * @var \DcaTools\Definition\DataContainer
 	 */
 	protected $definition;
-
-
-	/**
-	 * @var \Workflow\Entity\ModelState
-	 */
-	protected $state;
 
 
 	/**
@@ -192,7 +187,7 @@ class Workflow
 		$config = $dataProvider->getEmptyConfig();
 		$config->setId($this->id);
 
-		$model = new Model($dataProvider->fetch($config), $this->environment->getEventDispatcher());
+		$model = new Model($dataProvider->fetch($config), $container['event-dispatcher']);
 
 		try {
 			$this->environment = EnvironmentFactory::create($model, $workflow);
@@ -203,7 +198,11 @@ class Workflow
 			return false;
 		}
 
-		// register event listener and subscriber
+		// initialize services
+		$coreService = $this->environment->getDriverManager()->getDataProvider('tl_workflow_service')->getEmptyModel();
+		$coreService->setProperty('service', 'core');
+
+		ServiceFactory::instantiate($coreService, 'Workflow\Service\Core\Service', $this->environment);
 		$this->initializeServices($this->environment);
 
 		return true;
@@ -224,7 +223,7 @@ class Workflow
 		}
 
 		$event = new InitialisationEvent($model, $state);
-		$eventName = sprintf('workflow.%s.%s.initialize', $this->definition->getName(), $this->state->getProcessName());
+		$eventName = sprintf('workflow.%s.%s.initialize', $this->definition->getName(), $this->environment->getCurrentState()->getProcessName());
 
 		$this->environment->getEventDispatcher()->dispatch($eventName, $event);
 	}
@@ -253,7 +252,9 @@ class Workflow
 
 		if($handler->isProcessComplete($model))
 		{
-			$this->error(sprintf('Can not reach next step. Process "%s" is already completed', $this->state->getProcessName()));
+			$this->error(sprintf('Can not reach next step. Process "%s" is already completed',
+				$this->environment->getCurrentState()->getProcessName())
+			);
 		}
 
 		try {
@@ -287,32 +288,7 @@ class Workflow
 			return;
 		}
 
-		$services = deserialize($workflow->getProperty('services'), true);
-		$ids = array();
-
-		foreach($services as $service)
-		{
-			if(!$service['disabled'])
-			{
-				$ids[] = $service['service'];
-			}
-		}
-
-		$driver = $this->environment->getDriverManager()->getDataProvider('tl_workflow_service');
-		$config = FilterBuilder::create()->addIn('id', $ids)->getConfig($driver);
-
-		/** @var \DcGeneral\Data\ModelInterface $serviceModel */
-		foreach($driver->fetchAll($config) as $serviceModel)
-		{
-			$namespace = $GLOBALS['TL_WORKFLOW_SERVICES'][$serviceModel->getProperty('service')];
-			$serviceClass = $namespace . '\Service';
-
-			/** @var \Workflow\Service\ServiceInterface $service */
-			$service = new $serviceClass($serviceModel, $environment);
-			$service->initialize();
-		}
-
-		$this->environment->getEventDispatcher()->addListener('workflow.check_credentials', array('Workflow\Process\CheckCredentials', 'execute'));
+		ServiceFactory::forEnvironment($environment);
 		$this->registered[$workflow->getId()] = true;
 	}
 

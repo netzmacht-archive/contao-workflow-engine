@@ -9,7 +9,6 @@
 namespace Workflow\Model;
 
 use DcGeneral\Data\DCGE;
-use DcGeneral\Data\ModelInterface;
 use Workflow\Data\DriverManagerInterface;
 
 
@@ -32,7 +31,7 @@ class ModelManager
 
 
 	/**
-	 * @var ModelInterface[]
+	 * @var \DcGeneral\Data\ModelInterface[]
 	 */
 	protected $models = array();
 
@@ -55,9 +54,9 @@ class ModelManager
 	/**
 	 * Add a model to the model manager
 	 *
-	 * @param ModelInterface $model
+	 * @param \DcGeneral\Data\ModelInterface $model
 	 */
-	public function persist(ModelInterface $model)
+	public function persist(\DcGeneral\Data\ModelInterface $model)
 	{
 		$this->models[] = $model;
 	}
@@ -66,7 +65,7 @@ class ModelManager
 	/**
 	 * flush changed
 	 */
-	public function flush(ModelInterface $model=null)
+	public function flush(\DcGeneral\Data\ModelInterface $model=null)
 	{
 		if($model === null)
 		{
@@ -83,9 +82,9 @@ class ModelManager
 
 
 	/**
-	 * @param ModelInterface $model
+	 * @param \DcGeneral\Data\ModelInterface $model
 	 */
-	protected function doFlush(ModelInterface $model)
+	protected function doFlush(\DcGeneral\Data\ModelInterface $model)
 	{
 		$driver = $this->driverManager->getDataProvider($model->getProviderName());
 
