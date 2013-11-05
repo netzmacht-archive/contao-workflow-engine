@@ -6,7 +6,7 @@
  * Time: 08:10
  */
 
-namespace Workflow\Process;
+namespace Workflow\Handler;
 
 
 use DcaTools\Definition;
@@ -16,10 +16,9 @@ use Workflow\Exception\WorkflowException;
 use Workflow\Flow\NextStateInterface;
 use Workflow\Flow\Process;
 use Workflow\Flow\Step;
-use Workflow\Process\ProcessFactoryInterface;
 
 
-class ProcessFactory implements ProcessFactoryInterface
+class ProcessFactory
 {
 	/**
 	 * @var \Workflow\Data\DriverManagerInterface $providerManager

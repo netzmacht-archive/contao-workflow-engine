@@ -40,7 +40,7 @@ class ServiceFactory
 
 		if(!isset($GLOBALS['TL_WORKFLOW_SERVICES'][$name]))
 		{
-			throw new WorkflowException(sprintf('Unkown service identifier "%s"', $name));
+			throw new WorkflowException(sprintf('Unknown service identifier "%s"', $name));
 		}
 
 		$serviceClass = $GLOBALS['TL_WORKFLOW_SERVICES'][$name];
