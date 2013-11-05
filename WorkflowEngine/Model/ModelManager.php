@@ -10,7 +10,7 @@ namespace WorkflowEngine\Model;
 
 use DcGeneral\Data\DCGE;
 use DcGeneral\Data\ModelInterface;
-use WorkflowEngine\Registry;
+use WorkflowEngine\Data\DriverManagerInterface;
 
 
 /**
@@ -19,9 +19,17 @@ use WorkflowEngine\Registry;
  */
 class ModelManager
 {
+
+	/**
+	 * is deleted state
+	 */
 	const MODEL_IS_DELETED = 'isDeleted';
 
+	/**
+	 * force deleting
+	 */
 	const MODEL_DELETE     = 'delete';
+
 
 	/**
 	 * @var ModelInterface[]
@@ -30,14 +38,17 @@ class ModelManager
 
 
 	/**
-	 * @var Registry
+	 * @var DriverManagerInterface
 	 */
-	protected $registry;
+	protected $driverManager;
 
 
-	public function __construct(Registry $registry)
+	/**
+	 * @param DriverManagerInterface $driverManager
+	 */
+	public function __construct($driverManager)
 	{
-		$this->registry = $registry;
+		$this->driverManager = $driverManager;
 	}
 
 
@@ -76,7 +87,7 @@ class ModelManager
 	 */
 	protected function doFlush(ModelInterface $model)
 	{
-		$driver = $this->registry->getDataProvider($model->getProviderName());
+		$driver = $this->driverManager->getDataProvider($model->getProviderName());
 
 		if($model->getMeta(static::MODEL_DELETE))
 		{
@@ -94,4 +105,5 @@ class ModelManager
 			$model->setMeta(DCGE::MODEL_IS_CHANGED, false);
 		}
 	}
-} 
+
+}
