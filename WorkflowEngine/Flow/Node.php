@@ -82,7 +82,7 @@ abstract class Node
      *
      * @param string $name
      * @param string $targetType
-     * @param Node   $state
+     * @param Node   $target
      */
     public function addNextState($name, $targetType, Node $target)
     {
