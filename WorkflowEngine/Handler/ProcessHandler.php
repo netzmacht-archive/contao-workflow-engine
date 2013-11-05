@@ -2,7 +2,7 @@
 
 namespace WorkflowEngine\Handler;
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Workflow\Handler\Environment;
 use WorkflowEngine\Event\SecurityEvent;
 use WorkflowEngine\Entity\ModelState;
 use WorkflowEngine\Event\StepEvent;
@@ -33,29 +33,21 @@ class ProcessHandler implements ProcessHandlerInterface
 
 
 	/**
-	 * @var EventDispatcher
+	 * @var Environment
 	 */
-	protected $dispatcher;
-
-
-	/**
-	 * @var \WorkflowEngine\Data\DriverManagerInterface
-	 */
-	protected $driverManager;
+	protected $environment;
 
 
 	/**
 	 * @param Process $process
-	 * @param EventDispatcher $dispatcher
+	 * @param Environment $environment
 	 * @param ModelStorage $storage
-	 * @param $driverManager
 	 */
-	public function __construct(Process $process, EventDispatcher $dispatcher, ModelStorage $storage, $driverManager)
+	public function __construct(Process $process, Environment $environment, ModelStorage $storage)
     {
 	    $this->storage = $storage;
         $this->process = $process;
-	    $this->dispatcher = $dispatcher;
-	    $this->driverManager = $driverManager;
+	    $this->environment = $environment;
     }
 
 
@@ -106,7 +98,7 @@ class ProcessHandler implements ProcessHandlerInterface
 	        $stateName
         );
 
-	    $this->dispatcher->dispatch($eventName, $event);
+	    $this->environment->getEventDispatcher()->dispatch($eventName, $event);
 
         $modelState = null;
 
@@ -120,7 +112,7 @@ class ProcessHandler implements ProcessHandlerInterface
 	            $stateName
             );
 
-	        $this->dispatcher->dispatch($eventName, new StepEvent($step, $model, $modelState));
+	        $this->environment->getEventDispatcher()->dispatch($eventName, new StepEvent($step, $model, $modelState));
         } else {
             $modelState = $this->reachStep($model, $step, $currentModelState);
         }
@@ -152,9 +144,10 @@ class ProcessHandler implements ProcessHandlerInterface
 
         $event = new ValidateStepEvent($step, $model, new ViolationList());
         $eventName = sprintf('workflow.%s.%s.%s.validate', $model->getEntity()->getProviderName(), $this->process->getName(), $step->getName());
-	    $this->dispatcher->dispatch($eventName, $event);
+	    $this->environment->getEventDispatcher()->dispatch($eventName, $event);
 
-        if (0 === count($event->getViolationList())) {
+        if (0 === count($event->getViolationList()))
+        {
             $modelState = $this->storage->newModelStateSuccess($model, $this->process->getName(), $step->getName(), $currentModelState);
 
             // update model status
@@ -163,19 +156,23 @@ class ProcessHandler implements ProcessHandlerInterface
                 $model->$method($status);
             }
 
-            $eventName = sprintf('workflow.%s.%s.%s.reached', $this->process->getName(), $this->process->getName(), $step->getName());
-	        $this->dispatcher->dispatch($eventName, new StepEvent($step, $model, $modelState));
-        } else {
+            $eventName = sprintf('workflow.%s.%s.%s.reached', $model->getEntity()->getProviderName(), $this->process->getName(), $step->getName());
+	        $this->environment->getEventDispatcher()->dispatch($eventName, new StepEvent($step, $model, $modelState));
+        }
+        else
+        {
             $modelState = $this->storage->newModelStateError($model, $this->process->getName(), $step->getName(), $event->getViolationList(), $currentModelState);
 
-            $eventName = sprintf('workflow.%s.%s.%s.validation_fail', $this->process->getName(), $this->process->getName(), $step->getName());
-	        $this->dispatcher->dispatch($eventName, new StepEvent($step, $model, $modelState));
+            $eventName = sprintf('workflow.%s.%s.%s.validation_fail', $model->getEntity()->getProviderName(), $this->process->getName(), $step->getName());
+	        $this->environment->getEventDispatcher()->dispatch($eventName, new StepEvent($step, $model, $modelState));
 
             if ($step->getOnInvalid()) {
                 $step = $this->getProcessStep($step->getOnInvalid());
                 $modelState = $this->reachStep($model, $step);
             }
         }
+
+	    $this->environment->setCurrentState($modelState);
 
         return $modelState;
     }
@@ -243,7 +240,7 @@ class ProcessHandler implements ProcessHandlerInterface
 	    $grant = (count($step->getRoles()) == 0);
 	    $event = new SecurityEvent($step, $model, $grant);
 
-	    $this->dispatcher->dispatch('workflow.check_credentials', $event);
+	    $this->environment->getEventDispatcher()->dispatch('workflow.check_credentials', $event);
 
         if (!$event->isGranted())
         {
