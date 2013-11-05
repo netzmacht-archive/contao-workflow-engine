@@ -2,7 +2,7 @@
 
 namespace WorkflowEngine\Model;
 
-use DcaTools\Model\Filter;
+use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\DCGE;
 use DcGeneral\Data\DriverInterface;
 use WorkflowEngine\Entity\Entity;
@@ -45,13 +45,12 @@ class ModelStorage
 	 */
 	public function findCurrentModelState(ModelInterface $model, $processName)
 	{
-		$filter = Filter::create()
+		$builder = FilterBuilder::create()
 			->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
 			->addEquals('processName', $processName)
 			->addEquals('successful', true);
 
-		$config = $this->driver->getEmptyConfig();
-		$config->setFilter($filter->getFilter());
+		$config = $builder->getConfig($this->driver);
 		$config->setSorting(array('id' => DCGE::MODEL_SORTING_DESC));
 
 		$entity =  $this->driver->fetch($config);
@@ -76,17 +75,16 @@ class ModelStorage
 	 */
 	public function findAllModelStates(ModelInterface $model, $processName, $successOnly = true)
 	{
-		$filter = Filter::create()
+		$builder = FilterBuilder::create()
 			->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
 			->addEquals('processName', $processName);
 
 		if($successOnly)
 		{
-			$filter->addEquals('successful', true);
+			$builder->addEquals('successful', true);
 		}
 
-		$config = $this->driver->getEmptyConfig();
-		$config->setFilter($filter->getFilter());
+		$config = $builder->getConfig($this->driver);
 		$config->setSorting(array('createdAt' => DCGE::MODEL_SORTING_ASC));
 
 		$collection = $this->driver->fetchAll($config);
@@ -135,16 +133,15 @@ class ModelStorage
 	 */
 	public function deleteAllModelStates(ModelInterface $model, $processName = null)
 	{
-		$filter = Filter::create()
+		$builder = FilterBuilder::create()
 			->addEquals('workflowIdentifier', $model->getWorkflowIdentifier());
 
 		if($processName !== null)
 		{
-			$filter->addEquals('processName', $processName);
+			$builder->addEquals('processName', $processName);
 		}
 
-		$config = $this->driver->getEmptyConfig();
-		$config->setFilter($filter->getFilter());
+		$config = $builder->getConfig($this->driver);
 		$config->setIdOnly(true);
 
 		foreach($this->driver->fetchAll($config) as $id)
