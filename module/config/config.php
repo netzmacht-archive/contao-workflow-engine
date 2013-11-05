@@ -3,7 +3,7 @@
 /**
  * hooks
  */
-$GLOBALS['TL_HOOKS']['loadDataContainer'][] = array('Workflow\Contao\Connector', 'hookLoadDataContainer');
+$GLOBALS['TL_HOOKS']['loadDataContainer'][] = array('Workflow\Connector', 'hookLoadDataContainer');
 
 
 /**
@@ -34,7 +34,7 @@ $GLOBALS['TL_CONFIG']['workflow_actions'] = array
 	'create', 'change', 'propose', 'reject', 'validate', 'restore', 'publish', 'unpublish', 'delete', 'archive'
 );
 
-$GLOBALS['TL_WORKFLOW_SERVICES']['notify'] = 'Workflow\Service\Notify';
+$GLOBALS['TL_WORKFLOW_SERVICES']['notify'] = 'Workflow\Service\Notify\Service';
 //$GLOBALS['TL_WORKFLOW_SERVICES'][] = 'Workflow\Service\StoreChildren';
 //$GLOBALS['TL_WORKFLOW_SERVICES'][] = 'Workflow\Service\StoreData';
 //$GLOBALS['TL_WORKFLOW_SERVICES'][] = 'Workflow\Service\DisableProperties';

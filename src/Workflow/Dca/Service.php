@@ -54,19 +54,19 @@ class Service
 
 		if($this->model && $this->model->getProperty('service'))
 		{
-			/** @var \Workflow\Service\ConfigInterface $serviceClass */
-			$serviceConfig = $GLOBALS['TL_WORKFLOW_SERVICES'][$this->model->getProperty('service')] . '\Config';
-			$this->config = $serviceConfig;
+			/** @var \Workflow\Service\ServiceInterface $serviceClass */
+			$serviceClass = $GLOBALS['TL_WORKFLOW_SERVICES'][$this->model->getProperty('service')];
+			$this->config = $serviceClass::getConfig();
 
 			$palette = Definition::getPalette($dc->table);
 
-			foreach($serviceConfig::getProperties() as $property)
+			foreach($this->config->getConfigProperties() as $legend => $properties)
 			{
-				$palette->addProperty($property, 'config');
+				foreach($properties as $property)
+				{
+					$palette->addProperty($property, $legend);
+				}
 			}
-
-			$legend = Definition::getPalette($dc->table, 'scope')->getLegend('scope');
-			$palette->createLegend('scope')->appendBefore('config')->extend($legend);
 		}
 	}
 
@@ -97,12 +97,12 @@ class Service
 	{
 		$services = array();
 
-		foreach($GLOBALS['TL_WORKFLOW_SERVICES'] as $name => $namespace)
+		foreach($GLOBALS['TL_WORKFLOW_SERVICES'] as $name => $serviceClass)
 		{
-			/** @var \Workflow\Service\ConfigInterface $configClass */
-			$configClass = $namespace . '\Config';
+			/** @var \Workflow\Service\ServiceInterface $serviceClass */
+			$configClass = $serviceClass::getConfig();
 
-			$services[$name] = sprintf('%s (%s)', $configClass::getName(), $configClass::getVersion());
+			$services[$name] = sprintf('%s (%s)', $configClass->getName(), $configClass->getVersion());
 		}
 
 		return $services;
@@ -115,15 +115,5 @@ class Service
 
 		return $serviceConfig::getEvents();
 	}
-
-
-	public function getSteps()
-	{
-		$serviceConfig = $this->config;
-
-		return $serviceConfig::getSteps($GLOBALS['TL_CONFIG']['workflow_steps']);
-	}
-
-
 
 } 

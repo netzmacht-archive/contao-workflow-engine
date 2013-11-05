@@ -91,12 +91,8 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 		'default' => array
 		(
 			'name'   => array('name', 'service', 'description'),
+			'scope' => array('steps'),
 			'config' => array(),
-		),
-
-		'scope'      => array
-		(
-			'scope' => array('events', 'steps'),
 		),
 	),
 
@@ -193,7 +189,7 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['steps'],
 			'inputType'         => 'checkbox',
 			'exclude'           => true,
-			'options_callback'  => array('Workflow\Dca\Service', 'getSteps'),
+			'options'           => &$GLOBALS['TL_CONFIG']['workflow_steps'],
 			'reference'         => &$GLOBALS['TL_LANG']['workflow']['steps'],
 			'eval'              => array
 			(

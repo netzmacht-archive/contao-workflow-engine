@@ -15,7 +15,7 @@ use Workflow\Handler\Environment;
  *
  * @package Workflow\Service
  */
-interface ServiceInterface extends EventSubscriberInterface
+interface ServiceInterface
 {
 
 	public function __construct(ModelInterface $service, Environment $environment);

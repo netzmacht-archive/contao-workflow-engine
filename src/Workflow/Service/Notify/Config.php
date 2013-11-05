@@ -23,12 +23,20 @@ class Config extends AbstractConfig
 	 *
 	 * @return array
 	 */
-	public static function getProperties()
+	public static function getConfigProperties()
 	{
 		return array
 		(
-			'notify_email',
-			'notify_users',
+			'scope' => array
+			(
+				'events'
+			),
+
+			'config' => array
+			(
+				'notify_email',
+				'notify_users',
+			),
 		);
 	}
 
@@ -41,26 +49,6 @@ class Config extends AbstractConfig
 			//'validate',
 			'validation_fail',
 		);
-	}
-
-
-	/**
-	 * @param array $states
-	 * @return array|null
-	 */
-	public static function getStates(array $states)
-	{
-		return $states;
-	}
-
-
-	/**
-	 * @param array $steps
-	 * @return array
-	 */
-	public static function getSteps(array $steps)
-	{
-		return $steps;
 	}
 
 }

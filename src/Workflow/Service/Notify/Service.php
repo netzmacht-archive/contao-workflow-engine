@@ -22,26 +22,35 @@ class Service extends AbstractService
 {
 
 	/**
-	 * @param EventDispatcher $dispatcher
+	 *
 	 */
 	public function initialize()
 	{
 		global $container;
 
-		$driver = $this->environment->getDriverManager()->getDataProvider('tl_workflow_step');
+		$state = $this->environment->getCurrentState();
 
 		/** @var \DcGeneral\Data\ModelInterface $step */
 		foreach($this->model->getProperty('steps') as $step)
 		{
 			$eventName = sprintf('workflow.%s.%s.%s.',
 				$this->environment->getCurrentWorkflow()->getProperty('forTable'),
-				$this->environment->getProcessManager()->getProcess()->getName(), $step);
+				$this->environment->getProcessManager()->getProcess($state->getProcessName())->getName(), $step);
 
 			foreach($this->model->getProperty('events') as $event)
 			{
-				$dispatcher->addListener($eventName . $event , array($this, 'notify'));
+				$this->environment->getEventDispatcher()->addListener($eventName . $event , array($this, 'notify'));
 			}
 		}
+	}
+
+
+	/**
+	 * @return mixed
+	 */
+	public static function getConfig()
+	{
+		return new Config();
 	}
 
 

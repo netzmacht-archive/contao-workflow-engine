@@ -5,12 +5,17 @@ namespace Workflow\Service;
 
 abstract class AbstractConfig implements ConfigInterface
 {
-	const IDENTIFIER = 'abstract';
-
-	const VERSION = 'undefined';
 
 	/**
-	 * @return string
+	 * @inheritdoc
+	 */
+	public static function getIdentifier()
+	{
+		return static::IDENTIFIER;
+	}
+
+	/**
+	 * @inheritdoc
 	 */
 	public static function getName()
 	{
@@ -24,7 +29,7 @@ abstract class AbstractConfig implements ConfigInterface
 
 
 	/**
-	 * @return string
+	 * @inheritdoc
 	 */
 	public static function getDescription()
 	{
@@ -38,11 +43,11 @@ abstract class AbstractConfig implements ConfigInterface
 
 
 	/**
-	 * @return string
+	 * @inheritdoc
 	 */
 	public static function getVersion()
 	{
 		return static::VERSION;
 	}
 
-} 
+}
