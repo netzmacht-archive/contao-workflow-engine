@@ -1,0 +1,21 @@
+
+#ctrl_routine.tl_radio_container .tl_radio {
+    float: left;
+    margin-top: 1px;
+}
+
+#ctrl_routine.tl_radio_container label {
+    display: inline-block;
+    max-width: 90%;
+}
+
+#ctrl_routine.tl_radio_container .tl_gray {
+    margin-bottom: 3px;
+    display: inline-block;
+}
+
+
+#ctrl_routine.tl_radio_container .description {
+    padding: 2px 0 3px 0;
+    display: inline-block;
+}

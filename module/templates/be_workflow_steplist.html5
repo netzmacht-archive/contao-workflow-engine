@@ -1,0 +1,18 @@
+<table class="tl_listing showColumns">
+<thead>
+<td class="tl_folder_tlist"><?php echo  $this->stepLabel; ?></td>
+<td class="tl_folder_tlist"><?php echo  $this->rolesLabel; ?></td>
+<td class="tl_folder_tlist"><?php echo  $this->startLabel; ?></td>
+<td class="tl_folder_tlist"><?php echo  $this->endLabel; ?></td>
+</thead>
+<tbody>
+<?php while ($this->records->next()): ?>
+<tr onclick="Backend.getScrollOffset();DcaWizard.openModalWindow({'width':765, 'title':'', 'url':this.href, 'id':'steps', 'applyLabel':'Fenster schließen'});return false" href="<?php echo sprintf($this->href, $this->records->id); ?>">
+	<td class="tl_file_list"><?php echo $this->steps[$this->records->name][0]; ?></td>
+	<td class="tl_file_list"><?php echo implode(', ', deserialize($this->records->roles, true)); ?></td>
+	<td class="tl_file_list"><?php echo $this->records->start ? $this->yes : $this->no; ?></td>
+	<td class="tl_file_list"><?php echo $this->records->end ? $this->yes : $this->no; ?></td>
+</tr>
+<?php endwhile; ?>
+</tbody>
+</table>
