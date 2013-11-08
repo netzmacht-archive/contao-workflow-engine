@@ -44,6 +44,16 @@ $GLOBALS['TL_DCA']['tl_workflow_process'] = array
 			'format' => '%s',
 		),
 
+		'global_operations' => array
+		(
+			'back' => array
+			(
+				'label' => $GLOBALS['TL_LANG']['MSC']['backBT'],
+				'href'  => 'table=tl_workflow',
+				'class'  => 'header_back'
+			),
+		),
+
 		'operations' => array
 		(
 			'edit' => array
@@ -105,7 +115,7 @@ $GLOBALS['TL_DCA']['tl_workflow_process'] = array
 		'routine' => array(
 			'label'         => &$GLOBALS['TL_LANG']['tl_workflow_process']['routine'],
 			'inputType'          => 'radio',
-			'options_callback' => array('Workflow\Dca\Process', 'getRoutines'),
+			'options_callback' => array('Workflow\Contao\Dca\Process', 'getRoutines'),
 			'eval'          => array('multiple' => true),
 			'sql'           => "varchar(64) NOT NULL default ''",
 		),
@@ -126,7 +136,7 @@ $GLOBALS['TL_DCA']['tl_workflow_process'] = array
 			'foreignTable'  => 'tl_workflow_step',
 			'eval'          => array
 			(
-				'listCallback' => array('Workflow\Dca\Process', 'generateStepList'),
+				'listCallback' => array('Workflow\Contao\Dca\Process', 'generateStepList'),
 				'editButtonLabel' => &$GLOBALS['TL_LANG']['tl_workflow_process']['editStep'],
 				'applyButtonLabel' => &$GLOBALS['TL_LANG']['tl_workflow_process']['applyStep'],
 				'tl_class' => 'clr',

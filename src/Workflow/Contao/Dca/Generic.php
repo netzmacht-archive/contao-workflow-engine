@@ -6,7 +6,7 @@
  * Time: 10:40
  */
 
-namespace Workflow\Dca;
+namespace Workflow\Contao\Dca;
 
 
 class Generic

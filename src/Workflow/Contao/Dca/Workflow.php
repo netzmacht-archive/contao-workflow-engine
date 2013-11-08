@@ -6,7 +6,7 @@
  * Time: 23:32
  */
 
-namespace Workflow\Dca;
+namespace Workflow\Contao\Dca;
 
 use DcaTools\Definition;
 use DcaTools\Model\FilterBuilder;

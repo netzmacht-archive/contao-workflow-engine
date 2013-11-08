@@ -5,7 +5,8 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 	'config' => array
 	(
 		'dataContainer'     => 'Table',
-		'table' => 'tl_workflow',
+		'table'             => 'tl_workflow',
+		'ctables'           => array('tl_workflow_service'),
 		'enableVersioning'  => false,
 
 		'onload_callback' => array
@@ -34,7 +35,7 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 		'label' => array
 		(
 			'fields'         => array('title', 'forModule', 'forTable'),
-			'label_callback' => array('Workflow\Dca\Workflow', 'callbackLabel'),
+			'label_callback' => array('Workflow\Contao\Dca\Workflow', 'callbackLabel'),
 		),
 
 		'global_operations' => array
@@ -45,12 +46,6 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 				'href'  => 'table=tl_workflow_process',
 				'icon'  => 'system/modules/workflow/assets/img/process.png',
 			),
-			'services' => array
-			(
-				'label' => $GLOBALS['TL_LANG']['tl_workflow']['btn_services'],
-				'href'  => 'table=tl_workflow_service',
-				'icon'  => 'system/modules/workflow/assets/img/service.png'
-			),
 		),
 
 		'operations' => array
@@ -60,6 +55,13 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 				'label' => $GLOBALS['TL_LANG']['tl_workflow']['edit'],
 				'href'  => 'act=edit',
 				'icon'  => 'edit.gif'
+			),
+
+			'services' => array
+			(
+				'label' => $GLOBALS['TL_LANG']['tl_workflow']['btn_services'],
+				'href'  => 'table=tl_workflow_service',
+				'icon'  => 'system/modules/workflow/assets/img/service.png'
 			),
 
 			'delete' => array
@@ -112,7 +114,7 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 		(
 			'label'         => &$GLOBALS['TL_LANG']['tl_workflow']['forModule'],
 			'inputType' => 'select',
-			'options_callback' => array('Workflow\Dca\Workflow', 'getModules'),
+			'options_callback' => array('Workflow\Contao\Dca\Workflow', 'getModules'),
 			'reference' => &$GLOBALS['TL_LANG']['MOD'],
 			'eval' => array
 			(
@@ -126,7 +128,7 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 		(
 			'label'         => &$GLOBALS['TL_LANG']['tl_workflow']['forTable'],
 			'inputType'     => 'select',
-			'options_callback' => array('Workflow\Dca\Workflow', 'getTables'),
+			'options_callback' => array('Workflow\Contao\Dca\Workflow', 'getTables'),
 			'eval' => array
 			(
 				'mandatory' => true,
@@ -160,7 +162,7 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 					(
 						'label'            => &$GLOBALS['TL_LANG']['tl_workflow']['service'],
 						'inputType'        => 'select',
-						'options_callback' => array('Workflow\Dca\Workflow', 'getServices'),
+						'options_callback' => array('Workflow\Contao\Dca\Workflow', 'getServices'),
 						'eval'          => array
 						(
 							'style' => 'width: 280px',
@@ -198,7 +200,7 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 		(
 			'label'             => &$GLOBALS['TL_LANG']['tl_workflow']['data_properties'],
 			'inputType'         => 'checkbox',
-			'options_callback'  => array('Workflow\Dca\Workflow', 'getStorageProperties'),
+			'options_callback'  => array('Workflow\Contao\Dca\Workflow', 'getStorageProperties'),
 			'eval'              => array('tl_class' => 'clr', 'multiple' => true,),
 			'sql'               => "blob NULL",
 		),

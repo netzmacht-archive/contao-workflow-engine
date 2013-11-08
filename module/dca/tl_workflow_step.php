@@ -10,7 +10,7 @@ $GLOBALS['TL_DCA']['tl_workflow_step'] = array
 
 		'onsubmit_callback' => array
 		(
-			array('Workflow\Dca\Step', 'saveStart'),
+			array('Workflow\Contao\Dca\Step', 'saveStart'),
 		),
 
 		'sql' => array
@@ -31,13 +31,13 @@ $GLOBALS['TL_DCA']['tl_workflow_step'] = array
 			'flag' => 1,
 			'headerFields' => array('name', 'description'),
 			'fields' => array('name'),
-			'child_record_callback' => array('Workflow\Dca\Step', 'generateChildRecord'),
+			'child_record_callback' => array('Workflow\Contao\Dca\Step', 'generateChildRecord'),
 		),
 
 		'label' => array
 		(
 			'fields'         => array('name'),
-			'label_callback' => array('Workflow\Dca\Workflow', 'callbackLabel'),
+			'label_callback' => array('Workflow\Contao\Dca\Workflow', 'callbackLabel'),
 		),
 
 		'global_operations' => array
@@ -119,7 +119,7 @@ $GLOBALS['TL_DCA']['tl_workflow_step'] = array
 		(
 			'label'         => &$GLOBALS['TL_LANG']['tl_workflow_step']['name'],
 			'inputType'     => 'select',
-			'options_callback' => array('Workflow\Dca\Step', 'getSteps'),
+			'options_callback' => array('Workflow\Contao\Dca\Step', 'getSteps'),
 			'reference'     => &$GLOBALS['TL_LANG']['workflow']['steps'],
 			'eval'          => array
 			(
@@ -170,7 +170,7 @@ $GLOBALS['TL_DCA']['tl_workflow_step'] = array
 			'inputType'     => 'multiColumnWizard',
 			'load_callback' => array
 			(
-				array('Workflow\Dca\NextStateSelection', 'initialize'),
+				array('Workflow\Contao\Dca\NextStateSelection', 'initialize'),
 			),
 			'eval'          => array
 			(
@@ -180,7 +180,7 @@ $GLOBALS['TL_DCA']['tl_workflow_step'] = array
 					(
 						'label'         => &$GLOBALS['TL_LANG']['tl_workflow_step']['state'],
 						'inputType'     => 'select',
-						'options_callback' => array('Workflow\Dca\Step', 'getStates'),
+						'options_callback' => array('Workflow\Contao\Dca\Step', 'getStates'),
 						'reference'     => &$GLOBALS['TL_LANG']['workflow']['states'],
 						'eval'          => array
 						(
@@ -206,7 +206,7 @@ $GLOBALS['TL_DCA']['tl_workflow_step'] = array
 					(
 						'label'         => &$GLOBALS['TL_LANG']['tl_workflow_step']['target'],
 						'inputType'          => 'select',
-						'options_callback'  => array('Workflow\Dca\NextStateSelection', 'getTargets'),
+						'options_callback'  => array('Workflow\Contao\Dca\NextStateSelection', 'getTargets'),
 						'reference'     => &$GLOBALS['TL_LANG']['workflow']['steps'],
 						'eval'          => array
 						(
@@ -222,7 +222,7 @@ $GLOBALS['TL_DCA']['tl_workflow_step'] = array
 		(
 			'label'         => &$GLOBALS['TL_LANG']['tl_workflow_step']['roles'],
 			'inputType'     => 'checkbox',
-			'options_callback'  => array('Workflow\Dca\Step', 'getRoles'),
+			'options_callback'  => array('Workflow\Contao\Dca\Step', 'getRoles'),
 			'eval'          => array
 			(
 				'multiple' => true,

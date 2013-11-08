@@ -6,11 +6,12 @@
  * Time: 14:04
  */
 
-namespace Workflow\Dca;
+namespace Workflow\Contao\Dca;
 
 
 use DcaTools\Definition;
 use DcaTools\Model\FilterBuilder;
+use DcaTools\Translator;
 use DcGeneral\Data\DCGE;
 
 class Service extends Generic
@@ -23,9 +24,13 @@ class Service extends Generic
 	protected $config;
 
 
+	protected $workflow;
+
 	protected $tableIndex = 0;
 
 	protected $tableValue;
+
+	protected $dc;
 
 
 	public function initialize($dc)
@@ -36,6 +41,8 @@ class Service extends Generic
 		{
 			return;
 		}
+
+		$this->dc = $dc;
 
 		/** @var \Workflow\Data\DriverManagerInterface $manager */
 		$manager = $container['workflow.driver-manager'];
@@ -63,8 +70,22 @@ class Service extends Generic
 					}
 				}
 			}
-
 		}
+
+
+		$driver = $manager->getDataProvider('tl_workflow');
+		$model  = $driver->getEmptyModel();
+
+
+		$result = \Database::getInstance()
+			->prepare('SELECT * FROM tl_workflow where id=(SELECT pid FROM tl_workflow_service WHERE id=?)')
+			->limit(1)
+			->execute($dc->id);
+
+		$model->setPropertiesAsArray($result->row());
+		$model->setId($result->id);
+
+		$this->workflow = $model;
 	}
 
 	public function getUsers()
@@ -110,7 +131,40 @@ class Service extends Generic
 	{
 		$serviceConfig = $this->config;
 
-		return $serviceConfig::getEvents();
+		return $serviceConfig->getEvents();
 	}
 
+
+	public function getRestrictTables($dc)
+	{
+		$tables = array($this->workflow->getProperty('forTable'));
+		$children = Definition::getDataContainer($this->workflow->getProperty('forTable'))->get('config/ctable') ?: array();
+
+		return array_merge($tables, $children);
+	}
+
+
+	public function getRestrictOperations()
+	{
+		$operations = array();
+		$tables = deserialize($this->dc->activeRecord->restrict_tables, true);
+
+		foreach($tables as $table)
+		{
+			$definition = Definition::getDataContainer($table);
+			$translator = Translator::instantiate($table);
+
+			foreach($definition->getOperationNames('global') as $operation)
+			{
+				$operations[$table . ' (global)'][$table . '::global::' . $operation] = $translator->globalOperation($operation);
+			}
+
+			foreach($definition->getOperationNames() as $operation)
+			{
+				$operations[$table . ' (local)'][$table . '::local::' . $operation] = $translator->operation($operation);
+			}
+		}
+
+		return $operations;
+	}
 } 

@@ -133,8 +133,15 @@ class Connector
 			$config  = $driver->getEmptyConfig();
 			$config->setId($this->id);
 
+			$entity = $driver->fetch($config);
+
+			if(!$entity)
+			{
+				return;
+			}
+
 			try {
-				$this->controller = WorkflowFactory::createController($driver->fetch($config));
+				$this->controller = WorkflowFactory::createController($entity);
 			}
 			catch(WorkflowException $e)
 			{

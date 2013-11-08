@@ -37,18 +37,9 @@ class Workflow
 	public function initialize(Controller $controller)
 	{
 		$driver = $controller->getDriverManager()->getDataProvider('tl_workflow_service');
-		$ids    = array();
-
-		foreach($this->entity->getProperty('services') as $service)
-		{
-			if(!$service['disabled'])
-			{
-				$ids[] = $service['service'];
-			}
-		}
 
 		$config = FilterBuilder::create()
-			->addIn('id', $ids)
+			->addEquals('pid', $this->getId())
 			->getConfig($driver);
 
 		$this->services[] = ServiceFactory::create('core', $controller);

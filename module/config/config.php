@@ -32,9 +32,14 @@ $GLOBALS['TL_CONFIG']['workflow_actions'] = array
 	'create', 'change', 'propose', 'reject', 'validate', 'restore', 'publish', 'unpublish',  'archive', 'delete'
 );
 
+$GLOBALS['TL_CONFIG']['workflow_roles'] = array(
+	'owner', 'editor', 'reviewer', 'publisher'
+);
 
-$GLOBALS['TL_WORKFLOW_SERVICES']['notify']  = 'Workflow\Service\NotifyService';
-$GLOBALS['TL_WORKFLOW_SERVICES']['parent'] = 'Workflow\Service\ParentService';
+
+$GLOBALS['TL_WORKFLOW_SERVICES']['notify']          = 'Workflow\Service\NotifyService';
+$GLOBALS['TL_WORKFLOW_SERVICES']['parent']          = 'Workflow\Service\ParentService';
+$GLOBALS['TL_WORKFLOW_SERVICES']['restrict-access'] = 'Workflow\Service\RestrictAccessService';
 
 
 /**
@@ -47,14 +52,19 @@ array_insert($GLOBALS['BE_MOD'], 1, array
 (
 	'workflow' => array
 	(
-		'wf_config' => array
+		'draft' => array
+		(
+			'tables' => array('tl_workflow_draft'),
+
+		),
+
+		'workflow' => array
 		(
 			'stylesheet' => 'system/modules/workflow/assets/css/style.css',
 			'tables' => array('tl_workflow', 'tl_workflow_process', 'tl_workflow_step', 'tl_workflow_service'),
 			'icon' => 'system/themes/default/images/settings.gif',
 		),
 	),
-
 ));
 
 

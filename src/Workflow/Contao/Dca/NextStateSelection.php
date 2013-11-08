@@ -6,7 +6,7 @@
  * Time: 15:12
  */
 
-namespace Workflow\Dca;
+namespace Workflow\Contao\Dca;
 
 
 class NextStateSelection

@@ -82,3 +82,21 @@ $GLOBALS['TL_LANG']['workflow']['states']['archive'][1] = 'Inhalt archivieren';
 
 $GLOBALS['TL_LANG']['workflow']['states']['restore'][0] = 'wiederherstellen';
 $GLOBALS['TL_LANG']['workflow']['states']['restore'][1] = 'Angefragte Veröffentlichung ablehnen.';
+
+/**
+ *
+ */
+$GLOBALS['TL_LANG']['workflow']['roles']['owner'][0] = 'Eigentümer';
+$GLOBALS['TL_LANG']['workflow']['roles']['owner'][1] = 'Autor des Inhalts';
+
+$GLOBALS['TL_LANG']['workflow']['roles']['editor'][0] = 'Bearbeiter';
+$GLOBALS['TL_LANG']['workflow']['roles']['editor'][1] = 'Nutzer mit Bearbeitungsrechten';
+
+$GLOBALS['TL_LANG']['workflow']['roles']['reviewer'][0] = 'Prüfer';
+$GLOBALS['TL_LANG']['workflow']['roles']['reviewer'][1] = '';
+
+$GLOBALS['TL_LANG']['workflow']['roles']['publisher'][0] = 'Veröffentlicher';
+$GLOBALS['TL_LANG']['workflow']['roles']['publisher'][1] = 'Benutzer darf Entwürfe veröffentlichen.';
+
+$GLOBALS['TL_LANG']['workflow']['roles']['super'][0] = 'Super-User';
+$GLOBALS['TL_LANG']['workflow']['roles']['super'][1] = 'Benutzer darf veröffentlichte Inhalte depublizieren.';

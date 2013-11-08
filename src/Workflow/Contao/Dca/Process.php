@@ -6,7 +6,7 @@
  * Time: 14:17
  */
 
-namespace Workflow\Dca;
+namespace Workflow\Contao\Dca;
 
 
 use DcaTools\Translator;
