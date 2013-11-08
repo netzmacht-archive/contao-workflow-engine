@@ -13,7 +13,7 @@ use DcaTools\Definition;
 use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\DCGE;
 
-class Service
+class Service extends Generic
 {
 	protected $model;
 
@@ -22,18 +22,10 @@ class Service
 	 */
 	protected $config;
 
-	protected static $instance;
 
+	protected $tableIndex = 0;
 
-	public static function getInstance()
-	{
-		if(!static::$instance)
-		{
-			static::$instance = new static;
-		}
-
-		return static::$instance;
-	}
+	protected $tableValue;
 
 
 	public function initialize($dc)
@@ -56,17 +48,22 @@ class Service
 		{
 			/** @var \Workflow\Service\ServiceInterface $serviceClass */
 			$serviceClass = $GLOBALS['TL_WORKFLOW_SERVICES'][$this->model->getProperty('service')];
-			$this->config = $serviceClass::getConfig();
 
-			$palette = Definition::getPalette($dc->table);
-
-			foreach($this->config->getConfigProperties() as $legend => $properties)
+			if(class_exists($serviceClass))
 			{
-				foreach($properties as $property)
+				$this->config = $serviceClass::getConfig();
+
+				$palette = Definition::getPalette($dc->table);
+
+				foreach($this->config->getConfigProperties() as $legend => $properties)
 				{
-					$palette->addProperty($property, $legend);
+					foreach($properties as $property)
+					{
+						$palette->addProperty($property, $legend);
+					}
 				}
 			}
+
 		}
 	}
 

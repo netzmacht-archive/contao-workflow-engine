@@ -4,8 +4,8 @@ namespace Workflow\Service;
 
 use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\ModelInterface;
+use Workflow\Controller\Controller;
 use Workflow\Exception\WorkflowException;
-use Workflow\Handler\Environment;
 
 class ServiceFactory
 {
@@ -14,19 +14,44 @@ class ServiceFactory
 	 * Create a service
 	 *
 	 * @param ModelInterface|int $service service model or id
-	 * @param Environment $environment
+	 * @param Controller $controller
 	 *
 	 * @return ServiceInterface
 	 * @throws \Workflow\Exception\WorkflowException
 	 */
-	public static function create($service, Environment $environment)
+	public static function create($service, Controller $controller)
 	{
+		global $container;
+
 		if(!$service instanceof ModelInterface)
 		{
-			$driver = $environment->getDriverManager()->getDataProvider('tl_workflow_service');
+			/** @var \Workflow\Data\DriverManagerInterface $driverManager */
+			$driverManager = $container['workflow.driver-manager'];
+			$driver = $driverManager->getDataProvider('tl_workflow_service');
 
-			$config = $driver->getEmptyConfig();
-			$config->setId($service);
+			if($service == 'core')
+			{
+				$model = $driver->getEmptyModel();
+				$model->setId($service);
+
+				$service = new CoreService($model, $controller);
+				$service->initialize();
+
+				return $service;
+			}
+
+			if(is_numeric($service))
+			{
+				$config = $driver->getEmptyConfig();
+				$config->setId($service);
+			}
+			else
+			{
+				$config = FilterBuilder::create()
+					->addEquals('service', $service)
+					->addEquals('pid', $controller->getWorkflow()->getId())
+					->getConfig($driver);
+			}
 
 			$service = $driver->fetch($config);
 
@@ -44,23 +69,9 @@ class ServiceFactory
 		}
 
 		$serviceClass = $GLOBALS['TL_WORKFLOW_SERVICES'][$name];
-		return static::instantiate($service, $serviceClass, $environment);
-	}
 
-
-	/**
-	 * Instantiate a service
-	 *
-	 * @param ModelInterface $service
-	 * @param $class
-	 * @param Environment $environment
-	 *
-	 * @return ModelInterface|ServiceInterface
-	 */
-	public static function instantiate(ModelInterface $service, $class, Environment $environment)
-	{
 		/** @var \Workflow\Service\ServiceInterface $service */
-		$service = new $class($service, $environment);
+		$service = new $serviceClass($service, $controller);
 		$service->initialize();
 
 		return $service;
@@ -68,30 +79,17 @@ class ServiceFactory
 
 
 	/**
-	 * @param Environment $environment
-	 *
-	 * @return ServiceInterface
-	 */
-	public static function forEnvironment(Environment $environment)
-	{
-		$workflow = $environment->getCurrentWorkflow();
-
-		return static::forWorkflow($workflow, $environment);
-	}
-
-
-	/**
 	 * @param ModelInterface|int $workflow workflow model or id
-	 * @param Environment $environment
+	 * @param Controller $controller
 	 *
 	 * @return array
 	 * @throws \Workflow\Exception\WorkflowException
 	 */
-	public static function forWorkflow($workflow, Environment $environment)
+	public static function forWorkflow($workflow, Controller $controller)
 	{
 		if(!$workflow instanceof ModelInterface)
 		{
-			$driver = $environment->getDriverManager()->getDataProvider('tl_workflow');
+			$driver = $controller->getDriverManager()->getDataProvider('tl_workflow');
 
 			$config = $driver->getEmptyConfig();
 			$config->setId($workflow);
@@ -115,14 +113,14 @@ class ServiceFactory
 			}
 		}
 
-		$driver = $environment->getDriverManager()->getDataProvider('tl_workflow_service');
+		$driver = $controller->getDriverManager()->getDataProvider('tl_workflow_service');
 		$config = FilterBuilder::create()->addIn('id', $ids)->getConfig($driver);
 		$services = array();
 
 		/** @var \DcGeneral\Data\ModelInterface $serviceModel */
 		foreach($driver->fetchAll($config) as $serviceModel)
 		{
-			$services[] = static::create($serviceModel, $environment);
+			$services[] = static::create($serviceModel, $controller);
 		}
 
 		return $services;

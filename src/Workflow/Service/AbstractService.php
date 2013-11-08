@@ -11,6 +11,7 @@ namespace Workflow\Service;
 use DcaTools\Translator;
 use DcGeneral\Data\ModelInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Workflow\Controller\Controller;
 use Workflow\Handler\Environment;
 
 abstract class AbstractService implements ServiceInterface
@@ -19,26 +20,32 @@ abstract class AbstractService implements ServiceInterface
 	/**
 	 * @var \DcGeneral\Data\ModelInterface
 	 */
-	protected $model;
+	protected $service;
 
 
 	/**
-	 * @var Environment
+	 * @var Controller
 	 */
-	protected $environment;
+	protected $controller;
 
 
 	/**
-	 * @param ModelInterface $model
-	 * @param Environment $environment
+	 * @var array|Config
 	 */
-	public function __construct(ModelInterface $model, Environment $environment)
+	protected static $config;
+
+
+	/**
+	 * @param ModelInterface $service
+	 * @param Controller $controller
+	 */
+	public function __construct(ModelInterface $service, Controller $controller)
 	{
-		$this->model = $model;
-		$this->environment = $environment;
+		$this->service = $service;
+		$this->controller = $controller;
 
-		$this->model->setProperty('steps', deserialize($this->model->getProperty('steps'), true));
-		$this->model->setProperty('events', deserialize($this->model->getProperty('events'), true));
+		$this->service->setProperty('steps', deserialize($this->service->getProperty('steps'), true));
+		$this->service->setProperty('events', deserialize($this->service->getProperty('events'), true));
 	}
 
 
@@ -58,7 +65,7 @@ abstract class AbstractService implements ServiceInterface
 		$translator = Translator::instantiate($entity->getProviderName());
 		$properties = array();
 
-		foreach($this->model->getProperty('model_properties') as $property)
+		foreach($this->service->getProperty('model_properties') as $property)
 		{
 			if($entity->getProperty($property) !== null)
 			{
@@ -68,6 +75,20 @@ abstract class AbstractService implements ServiceInterface
 		}
 
 		return $properties;
+	}
+
+
+	/**
+	 * @return Config
+	 */
+	public static function getConfig()
+	{
+		if(!static::$config instanceof Config)
+		{
+			static::$config = new Config(static::$config);
+		}
+
+		return static::$config;
 	}
 
 }

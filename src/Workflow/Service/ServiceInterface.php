@@ -3,8 +3,7 @@
 namespace Workflow\Service;
 
 use DcGeneral\Data\ModelInterface;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Workflow\Handler\Environment;
+use Workflow\Controller\Controller;
 
 
 /**
@@ -18,7 +17,7 @@ use Workflow\Handler\Environment;
 interface ServiceInterface
 {
 
-	public function __construct(ModelInterface $service, Environment $environment);
+	public function __construct(ModelInterface $service, Controller $controller);
 
 	/**
 	 * The initialize is used for registering all listeners depending

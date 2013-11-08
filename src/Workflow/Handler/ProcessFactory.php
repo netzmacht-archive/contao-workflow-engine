@@ -8,7 +8,6 @@
 
 namespace Workflow\Handler;
 
-
 use DcaTools\Definition;
 use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\ModelInterface;
@@ -20,35 +19,21 @@ use Workflow\Flow\Step;
 
 class ProcessFactory
 {
-	/**
-	 * @var \Workflow\Data\DriverManagerInterface $providerManager
-	 */
-	protected $providerManager;
-
 
 	/**
-	 * @param \Workflow\Data\DriverManagerInterface|\DcGeneral\DC_General $providerManager
-	 */
-	public function __construct($providerManager)
-	{
-		$this->providerManager = $providerManager;
-	}
-
-
-	/**
-	 * @param $name name or id
+	 * @param string $name name or id
 	 *
 	 * @return Process
 	 * @throws \Workflow\Exception\WorkflowException
 	 */
-	public function create($name)
+	public static function create($name)
 	{
 		if(is_numeric($name))
 		{
-			return $this->createById($name);
+			return static::createById($name);
 		}
 
-		return $this->createByName($name);
+		return static::createByName($name);
 	}
 
 
@@ -58,9 +43,11 @@ class ProcessFactory
 	 * @return Process
 	 * @throws \Workflow\Exception\WorkflowException
 	 */
-	public function createById($id)
+	public static function createById($id)
 	{
-		$driver = $this->providerManager->getDataProvider('tl_workflow_process');
+		/** @var \Workflow\Data\DriverManager $driverManager */
+		$driverManager = $GLOBALS['container']['workflow.driver-manager'];
+		$driver = $driverManager->getDataProvider('tl_workflow_process');
 
 		$config = $driver->getEmptyConfig();
 		$config->setId($id);
@@ -72,7 +59,7 @@ class ProcessFactory
 			throw new WorkflowException(sprintf('Unknown process with ID "%s"', $id));
 		}
 
-		return $this->createFromModel($model);
+		return static::createFromModel($model);
 	}
 
 
@@ -82,9 +69,11 @@ class ProcessFactory
 	 * @return Process
 	 * @throws \Workflow\Exception\WorkflowException
 	 */
-	public function createByName($name)
+	public static function createByName($name)
 	{
-		$driver = $this->providerManager->getDataProvider('tl_workflow_process');
+		/** @var \Workflow\Data\DriverManager $driverManager */
+		$driverManager = $GLOBALS['container']['workflow.driver-manager'];
+		$driver = $driverManager->getDataProvider('tl_workflow_process');
 
 		$config = FilterBuilder::create()->addEquals('name', $name)->getConfig($driver);
 		$model = $driver->fetch($config);
@@ -94,7 +83,7 @@ class ProcessFactory
 			throw new WorkflowException(sprintf('Unknown process with name "%s"', $name));
 		}
 
-		return $this->createFromModel($model);
+		return static::createFromModel($model);
 	}
 
 
@@ -105,9 +94,11 @@ class ProcessFactory
 	 *
 	 * @throws \Workflow\Exception\WorkflowException
 	 */
-	public function createFromModel(ModelInterface $model)
+	public static function createFromModel(ModelInterface $model)
 	{
-		$driver = $this->providerManager->getDataProvider('tl_workflow_step');
+		/** @var \Workflow\Data\DriverManager $driverManager */
+		$driverManager = $GLOBALS['container']['workflow.driver-manager'];
+		$driver = $driverManager->getDataProvider('tl_workflow_step');
 
 		$config = FilterBuilder::create()->addEquals('pid', $model->getId())->getConfig($driver);
 		$stepsCollection = $driver->fetchAll($config);
@@ -129,7 +120,7 @@ class ProcessFactory
 			// step could has already been created by recursive calling
 			if(!isset($steps[$step['name']]))
 			{
-				$steps[$step['name']] = $this->createStep($step, $steps, $stepsConfig);
+				$steps[$step['name']] = static::createStep($step, $steps, $stepsConfig);
 			}
 
 			if($step['start'])
@@ -156,7 +147,7 @@ class ProcessFactory
 	 *
 	 * @throws \InvalidArgumentException
 	 */
-	protected function createStep($stepConfig, array &$steps, array $stepsConfig)
+	protected static function createStep($stepConfig, array &$steps, array $stepsConfig)
 	{
 		$nextStates = deserialize($stepConfig['next_states'], true);
 		$roles      = deserialize($stepConfig['roles'], true);
@@ -176,7 +167,7 @@ class ProcessFactory
 				}
 				elseif(!isset($steps[$stepsConfig[$state['target']]['name']]))
 				{
-					$steps[$state['target']] = $this->createStep($stepsConfig[$state['target']], $steps, $stepsConfig);
+					$steps[$state['target']] = static::createStep($stepsConfig[$state['target']], $steps, $stepsConfig);
 					$target = $steps[$state['target']];
 				}
 				else {
@@ -185,7 +176,7 @@ class ProcessFactory
 			}
 			elseif(NextStateInterface::TARGET_TYPE_PROCESS === $state['type'])
 			{
-				$target = $this->createById($state['target']);
+				$target = static::createById($state['target']);
 			}
 			else
 			{

@@ -223,6 +223,8 @@ class ModelState extends Entity
 
 		$next = $this->getProperty('next');
 		$next[] = $state;
+
+		$this->setProperty('next', $next);
 	}
 
 }

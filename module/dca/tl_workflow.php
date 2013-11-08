@@ -8,6 +8,11 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 		'table' => 'tl_workflow',
 		'enableVersioning'  => false,
 
+		'onload_callback' => array
+		(
+
+		),
+
 		'sql' => array
 		(
 			'keys' => array
@@ -40,9 +45,9 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 				'href'  => 'table=tl_workflow_process',
 				'icon'  => 'system/modules/workflow/assets/img/process.png',
 			),
-			'service' => array
+			'services' => array
 			(
-				'label' => $GLOBALS['TL_LANG']['tl_workflow']['edit'],
+				'label' => $GLOBALS['TL_LANG']['tl_workflow']['btn_services'],
 				'href'  => 'table=tl_workflow_service',
 				'icon'  => 'system/modules/workflow/assets/img/service.png'
 			),
@@ -73,17 +78,9 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 	(
 		'default' => array
 		(
-			'title'    => array('title', 'process'),
-			'scope'    => array('forTable'),
+			'title'    => array('title', 'process', 'forTable'),
 			'services' => array('services'),
-		),
-	),
-
-	'metasubselectpalettes' => array
-	(
-		'forTable' => array
-		(
-			'!' => array('forModule'),
+			'storage'  => array('store_children', 'data_properties')
 		),
 	),
 
@@ -182,6 +179,28 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 				),
 			),
 			'sql'           => "blob NULL",
+		),
+
+		'store_children' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow']['store_children'],
+			'inputType'         => 'checkbox',
+			'exclude'           => true,
+			'eval'              => array
+			(
+				'tl_class'  => 'clr',
+				'submitOnChange' => true,
+			),
+			'sql'               => "char(1) NOT NULL default ''",
+		),
+
+		'data_properties' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow']['data_properties'],
+			'inputType'         => 'checkbox',
+			'options_callback'  => array('Workflow\Dca\Workflow', 'getStorageProperties'),
+			'eval'              => array('tl_class' => 'clr', 'multiple' => true,),
+			'sql'               => "blob NULL",
 		),
 	),
 );

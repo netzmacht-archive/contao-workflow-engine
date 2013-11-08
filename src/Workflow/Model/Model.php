@@ -1,16 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 26.10.13
- * Time: 18:00
- */
 
 namespace Workflow\Model;
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Workflow\Event\WorkflowDataEvent;
-use Workflow\Model\ModelInterface;
+use DcaTools\Definition;
+use DcaTools\Model\FilterBuilder;
+use Workflow\Controller\Controller;
+use DcGeneral\Data\ModelInterface as EntityInterface;
 
 
 /**
@@ -27,19 +22,19 @@ class Model implements ModelInterface
 
 
 	/**
-	 * @var \Symfony\Component\EventDispatcher\EventDispatcher
+	 * @var Controller
 	 */
-	protected $dispatcher;
+	protected $controller;
 
 
 	/**
 	 * @param \DcGeneral\Data\ModelInterface $entity
-	 * @param EventDispatcher $dispatcher
+	 * @param Controller $controller
 	 */
-	public function __construct(\DcGeneral\Data\ModelInterface $entity, EventDispatcher $dispatcher)
+	public function __construct(EntityInterface $entity, Controller $controller)
 	{
 		$this->entity = $entity;
-		$this->dispatcher = $dispatcher;
+		$this->controller = $controller;
 	}
 
 
@@ -61,12 +56,59 @@ class Model implements ModelInterface
 	 */
 	public function getWorkflowData()
 	{
-		$event = new WorkflowDataEvent($this);
-		$eventName = sprintf('workflow.%s.get_data', $this->getEntity()->getProviderName());
+		$data = array();
+		$workflow = $this->controller->getWorkflow();
+		$properties = $workflow->getDataProperties();
+		$children = array();
 
-		$this->dispatcher->dispatch($eventName, $event);
+		// render property list, because properties are stored as table::property
+		foreach($properties as $property)
+		{
+			list($table, $property) = explode('::', $property);
 
-		return $event->getDataArray();
+			// table is table of workflow, lets get the data
+			if($table == $workflow->getTable())
+			{
+				if($property == 'id')
+				{
+					$data[$property] = $this->getEntity()->getId();
+				}
+				else {
+					$data[$property] = $this->getEntity()->getProperty($property);
+				}
+			}
+
+			// children data
+			elseif($workflow->getStoreChildren())
+			{
+				$children[$table][] = $property;
+			}
+		}
+
+		foreach($children as $table => $properties)
+		{
+			$definition = Definition::getDataContainer($table);
+			$driver = $this->controller->getDriverManager()->getDataProvider($table);
+
+			$builder = FilterBuilder::create()
+				->addEquals('pid', $this->getEntity()->getId());
+
+			if($definition->get('config/dynamicPtable'))
+			{
+				$builder->addEquals('ptable', $this->getEntity()->getProviderName());
+			}
+
+			$config = $builder->getConfig($driver);
+			$config->setFields($properties);
+
+			foreach($driver->fetchAll($config) as $child)
+			{
+				/** @var \DcGeneral\Data\ModelInterface $child */
+				$data['_children'][$table][$child->getId()] = $child->getPropertiesAsArray();
+			}
+		}
+
+		return $data;
 	}
 
 

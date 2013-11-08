@@ -8,11 +8,11 @@
 
 namespace Workflow\Dca;
 
+use DcaTools\Definition;
 use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\DCGE;
-use DcGeneral\DC_General;
 
-class Workflow
+class Workflow extends Generic
 {
 
 	/**
@@ -46,9 +46,9 @@ class Workflow
 					$modules[] = $module;
 				}
 			}
-
-			return $modules;
 		}
+
+		return $modules;
 	}
 
 
@@ -69,11 +69,15 @@ class Workflow
 		/** @var \DcGeneral\Data\ModelInterface $service */
 		foreach($driver->fetchAll($config) as $service)
 		{
-			/** @var \Workflow\Service\ConfigInterface $configClass */
-			$configClass = $GLOBALS['TL_WORKFLOW_SERVICES'][$service->getProperty('service')] . '\Config';
-			$name = $configClass::getName();
+			/** @var \Workflow\Service\ServiceInterface $serviceClass */
+			$serviceClass = $GLOBALS['TL_WORKFLOW_SERVICES'][$service->getProperty('service')];
 
-			$services[$name][$service->getId()] = $service->getProperty('name');
+			if(class_exists($serviceClass))
+			{
+				$name = $serviceClass::getConfig()->getName();
+
+				$services[$name][$service->getId()] = $service->getProperty('name');
+			}
 		}
 
 		ksort($services);
@@ -81,11 +85,38 @@ class Workflow
 		return $services;
 	}
 
-
-	public function getTables($dc)
+	/**
+	 * @param $dc
+	 * @return array
+	 */
+	public function getStorageProperties($dc)
 	{
-		// TODO: support non database data containers
-		return array_values(array_diff(\Database::getInstance()->listTables(), $GLOBALS['TL_CONFIG']['workflow_disabledTables']));
+		$properties = array();
+		$tables = array();
+		$table = $dc->activeRecord->forTable;
+
+		if($table)
+		{
+			$tables = array($table);
+		}
+
+		if($dc->activeRecord->store_children)
+		{
+			$children = Definition::getDataContainer($table)->get('config/ctable') ?: array();
+			$tables = array_merge($tables, $children);
+		}
+
+		foreach($tables as $table)
+		{
+			$definition = Definition::getDataContainer($table);
+
+			foreach($definition->getProperties() as $name => $property)
+			{
+				$properties[$table][specialchars($table .'::'. $name)] = $property->getLabel()[0] ?: $name;
+			}
+		}
+
+		return $properties;
 	}
 
 } 

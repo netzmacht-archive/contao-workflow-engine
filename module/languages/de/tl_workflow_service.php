@@ -41,3 +41,29 @@ $GLOBALS['TL_LANG']['tl_workflow_service']['events'][1] = 'Geben Sie die Ereigni
 
 $GLOBALS['TL_LANG']['tl_workflow_service']['steps'][0] = 'Schritte';
 $GLOBALS['TL_LANG']['tl_workflow_service']['steps'][1] = 'Geben Sie die Schritte an, bei dem der Service ausgeführt werden soll.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_type'][0] = 'Speicherart';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_type'][1] = 'Entscheiden Sie, welche Daten gespeichert werden sollen.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_type']['data'][0] = 'Aktueller Datensatz';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_type']['data'][1] = 'Es wird der aktuelle Datensatz der im Workflow definierten Tabelle gespeichert.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_type']['children'][0] = 'Kinder-Datensätze';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_type']['children'][1] = 'Es werden die dazugehörigen Datensätze der Kinder-Tabellen gespeichert.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_tables'][0] = 'Tabellen';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_tables'][1] = 'Sie können für beliebige viele Tabellen definieren, welche Werte gespeichert werden. Diese werden beim entsprechenden Workflow angewendet.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_table'][0] = 'Tabelle';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_table'][1] = 'Wählen Sie die gewünschte Tabelle aus.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_mode'][0] = 'Auswahl der Spalten';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_mode'][1] = 'Möchten Sie die zu speichernden Spalten beschränken.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_mode']['all'] = 'Alle Spalten';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_mode']['none'] = 'Nichts';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_mode']['include'] = 'Ausgewählte Spalten';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_mode']['exclude'] = 'Ausgewählte Spalten ausschließen';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_properties'][0] = 'Spaltenauswahl';
+$GLOBALS['TL_LANG']['tl_workflow_service']['storage_properties'][1] = 'Wählen Sie die Spalten aus, die je nach Einstellung ein- oder ausgeschlossen werden.';

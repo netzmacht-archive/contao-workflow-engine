@@ -6,13 +6,11 @@
  * Time: 08:37
  */
 
-namespace Workflow\Service\Core;
-
+namespace Workflow\Service;
 
 use Workflow\Event\SecurityEvent;
-use Workflow\Service\AbstractService;
 
-class Service extends AbstractService
+class CoreService extends AbstractService
 {
 	const VERSION = '1.0';
 
@@ -23,7 +21,7 @@ class Service extends AbstractService
 	 */
 	function initialize()
 	{
-		$dispatcher = $this->environment->getEventDispatcher();
+		$dispatcher = $this->controller->getEventDispatcher();
 		$dispatcher->addListener('workflow.check_credentials', array($this, 'checkCredentials'));
 	}
 

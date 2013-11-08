@@ -4,7 +4,10 @@
  *
  */
 $GLOBALS['TL_LANG']['workflow']['services']['notify'][0] = 'Benachrichtigungen';
-$GLOBALS['TL_LANG']['workflow']['services']['notify'][1] = 'Benachrichtigungen über Änderungen per E-Mail versenden';
+$GLOBALS['TL_LANG']['workflow']['services']['notify'][1] = 'Benachrichtigungen über Änderungen per E-Mail versenden.';
+
+$GLOBALS['TL_LANG']['workflow']['services']['storage'][0] = 'Datensätze speichern';
+$GLOBALS['TL_LANG']['workflow']['services']['storage'][1] = 'Speichert den jeweiligen Datensatz des Workflow-Models.';
 
 /**
  * routines

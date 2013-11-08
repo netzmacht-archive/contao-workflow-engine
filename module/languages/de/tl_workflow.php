@@ -9,6 +9,12 @@ $GLOBALS['TL_LANG']['tl_workflow']['services_legend'] = 'Services';
 
 
 /**
+ * operations
+ */
+$GLOBALS['TL_LANG']['tl_workflow']['btn_services'][0] = 'Services';
+$GLOBALS['TL_LANG']['tl_workflow']['btn_services'][1] = 'Services anlegen und verwalten';
+
+/**
  * fields
  */
 $GLOBALS['TL_LANG']['tl_workflow']['title'][0] = 'Titel';

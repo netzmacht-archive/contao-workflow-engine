@@ -9,14 +9,10 @@
 namespace Workflow;
 
 use DcaTools\Definition;
-use DcaTools\Model\FilterBuilder;
 use DcGeneral\DC_General;
-use Workflow\Event\InitialisationEvent;
-use Workflow\Handler\EnvironmentFactory;
-use Workflow\Model\Model;
+use Workflow\Controller\WorkflowFactory;
 use Workflow\Entity\ModelState;
 use Workflow\Exception\WorkflowException;
-use Workflow\Service\ServiceFactory;
 
 class Workflow
 {
@@ -62,15 +58,15 @@ class Workflow
 
 
 	/**
-	 * @var \Workflow\Handler\Environment
-	 */
-	protected $environment;
-
-
-	/**
 	 * @var bool[]
 	 */
 	protected $registered = array();
+
+
+	/**
+	 * @var \Workflow\Controller\Controller
+	 */
+	protected $controller;
 
 
 	/**
@@ -80,7 +76,8 @@ class Workflow
 	{
 		$this->action = \Input::get('key') == '' ? \Input::get('act') : \Input::get('key');
 
-		$this->parentView = in_array($this->action, array(null, 'select', 'create'))
+		$this->parentView = in_array($this->action, array('select', 'create'))
+			|| ($this->action === null && \Input::get('table') != '' && $GLOBALS['TL_DCA'][\Input::get('table')]['config']['ptable'])
 			|| ($this->action == 'paste' && \Input::get('mode') == 'create');
 
 		if(\Input::get('tid') != null)
@@ -117,9 +114,27 @@ class Workflow
 			$this->initialized = true;
 			$this->initializeDefinition($dc);
 
-			if($this->initializeEnvironment())
+			/** @var \Workflow\Data\DriverManager $manager */
+			$manager = $GLOBALS['container']['workflow.driver-manager'];
+			$driver  = $manager->getDataProvider($this->definition->getName());
+			$config  = $driver->getEmptyConfig();
+			$config->setId($this->id);
+
+			try {
+				$this->controller = WorkflowFactory::createController($driver->fetch($config));
+			}
+			catch(WorkflowException $e)
 			{
-				$this->initializeState();
+				return;
+			}
+
+
+			try {
+				$this->controller->initialize();
+			}
+			catch(WorkflowException $e)
+			{
+				$this->error($e->getMessage());
 			}
 		}
 	}
@@ -156,80 +171,6 @@ class Workflow
 
 
 	/**
-	 * Initialize the workflow controller
-	 *
-	 * @return bool
-	 */
-	protected function initializeEnvironment()
-	{
-		global $container;
-
-		/** @var \Workflow\Data\DriverManagerInterface $driverManager */
-		$driverManager = $container['workflow.driver-manager'];
-		$workflowDriver = $driverManager->getDataProvider('tl_workflow');
-
-		$config = FilterBuilder::create()
-			->addEquals('forTable', $this->definition->getName())
-			->addEquals('forModule', \Input::get('do'))
-			->getConfig($workflowDriver);
-
-		$workflow = $workflowDriver->fetch($config);
-
-		// there is no workflow defined
-		if($workflow == null)
-		{
-			return false;
-		}
-
-		// get current model
-		$dataProvider = $driverManager->getDataProvider($this->definition->getName());
-
-		$config = $dataProvider->getEmptyConfig();
-		$config->setId($this->id);
-
-		$model = new Model($dataProvider->fetch($config), $container['event-dispatcher']);
-
-		try {
-			$this->environment = EnvironmentFactory::create($model, $workflow);
-		}
-		catch(WorkflowException $e) {
-			$this->error($e->getMessage());
-
-			return false;
-		}
-
-		// initialize services
-		$coreService = $this->environment->getDriverManager()->getDataProvider('tl_workflow_service')->getEmptyModel();
-		$coreService->setProperty('service', 'core');
-
-		ServiceFactory::instantiate($coreService, 'Workflow\Service\Core\Service', $this->environment);
-		$this->initializeServices($this->environment);
-
-		return true;
-	}
-
-
-	/**
-	 * initialize current state
-	 */
-	protected function initializeState()
-	{
-		$model = $this->environment->getCurrentModel();
-		$state = $this->environment->getCurrentState();
-
-		if($state === null)
-		{
-			$state = $this->environment->getCurrentProcessHandler()->start($model);
-		}
-
-		$event = new InitialisationEvent($model, $state);
-		$eventName = sprintf('workflow.%s.%s.initialize', $this->definition->getName(), $this->environment->getCurrentState()->getProcessName());
-
-		$this->environment->getEventDispatcher()->dispatch($eventName, $event);
-	}
-
-
-	/**
 	 * Listener for get attribute key=workflow for handling workflow tasks
 	 *
 	 */
@@ -247,23 +188,8 @@ class Workflow
 	 */
 	public function reachNextState($stateName)
 	{
-		$model = $this->environment->getCurrentModel();
-		$handler = $this->environment->getCurrentProcessHandler();
-
-		if($handler->isProcessComplete($model))
-		{
-			$this->error(sprintf('Can not reach next step. Process "%s" is already completed',
-				$this->environment->getCurrentState()->getProcessName())
-			);
-		}
-
 		try {
-			$state = $handler->reachNextState($model, $stateName);
-
-			if(!$state->getSuccessful())
-			{
-				$this->displayStateErrors($state);
-			}
+			$this->controller->reachNextState($stateName);
 		}
 		catch(WorkflowException $e) {
 			$this->error($e->getMessage());
@@ -271,25 +197,6 @@ class Workflow
 
 		// redirect to referrer by default. If another target is required, the listener has to redirect
 		\Controller::redirect(\Controller::getReferer());
-	}
-
-
-	/**
-	 * Register all events of a given data container
-	 *
-	 * @param \Workflow\Handler\Environment $environment
-	 */
-	public function initializeServices($environment)
-	{
-		$workflow = $environment->getCurrentWorkflow();
-
-		if(isset($this->registered[$workflow->getId()]))
-		{
-			return;
-		}
-
-		ServiceFactory::forEnvironment($environment);
-		$this->registered[$workflow->getId()] = true;
 	}
 
 

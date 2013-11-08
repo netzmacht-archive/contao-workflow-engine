@@ -22,22 +22,19 @@ $GLOBALS['TL_CONFIG']['workflow_disabledTables']    = array
 
 $GLOBALS['TL_CONFIG']['workflow_disabledModules']   = array('settings', 'member', 'user', 'mgroup', 'group');
 
-$GLOBALS['TL_CONFIG']['workflow_checkCredentials']  = array('\Workflow\Process\CheckCredentials', 'execute');
-
 $GLOBALS['TL_CONFIG']['workflow_steps'] = array
 (
-	'created', 'changed', 'proposed', 'validated', 'published', 'unpublished', 'deleted', 'archived'
+	'created', 'changed', 'proposed', 'validated', 'published', 'unpublished', 'archived', 'deleted',
 );
 
 $GLOBALS['TL_CONFIG']['workflow_actions'] = array
 (
-	'create', 'change', 'propose', 'reject', 'validate', 'restore', 'publish', 'unpublish', 'delete', 'archive'
+	'create', 'change', 'propose', 'reject', 'validate', 'restore', 'publish', 'unpublish',  'archive', 'delete'
 );
 
-$GLOBALS['TL_WORKFLOW_SERVICES']['notify'] = 'Workflow\Service\Notify\Service';
-//$GLOBALS['TL_WORKFLOW_SERVICES'][] = 'Workflow\Service\StoreChildren';
-//$GLOBALS['TL_WORKFLOW_SERVICES'][] = 'Workflow\Service\StoreData';
-//$GLOBALS['TL_WORKFLOW_SERVICES'][] = 'Workflow\Service\DisableProperties';
+
+$GLOBALS['TL_WORKFLOW_SERVICES']['notify']  = 'Workflow\Service\NotifyService';
+$GLOBALS['TL_WORKFLOW_SERVICES']['parent'] = 'Workflow\Service\ParentService';
 
 
 /**
@@ -53,7 +50,8 @@ array_insert($GLOBALS['BE_MOD'], 1, array
 		'wf_config' => array
 		(
 			'stylesheet' => 'system/modules/workflow/assets/css/style.css',
-			'tables' => array('tl_workflow', 'tl_workflow_process', 'tl_workflow_step', 'tl_workflow_role', 'tl_workflow_service'),
+			'tables' => array('tl_workflow', 'tl_workflow_process', 'tl_workflow_step', 'tl_workflow_service'),
+			'icon' => 'system/themes/default/images/settings.gif',
 		),
 	),
 

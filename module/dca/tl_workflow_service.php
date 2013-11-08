@@ -96,10 +96,6 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 		),
 	),
 
-	'metasubselectpalettes' => array
-	(
-	),
-
 	'fields' => array
 	(
 		'id' => array
@@ -227,6 +223,19 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			'sql'               => "mediumblob NULL",
 		),
 
-
+		'storage_type' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['storage_type'],
+			'inputType'         => 'checkbox',
+			'options'           => array('data', 'children'),
+			'reference'         =>  &$GLOBALS['TL_LANG']['tl_workflow_service']['storage_type'],
+			'exclude'           => true,
+			'eval'              => array
+			(
+				'multiple'      => true,
+				'helpwizard'    => true,
+			),
+			'sql'               => "varchar(255) NOT NULL default ''",
+		),
 	),
 );

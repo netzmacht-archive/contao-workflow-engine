@@ -14,24 +14,16 @@ class ModelStorage
 {
 
 	/**
-	 * @var ModelManager
-	 */
-	protected $modelManager;
-
-
-	/**
 	 * @var \DcGeneral\Data\DriverInterface
 	 */
 	protected $driver;
 
 
 	/**
-	 * @param ModelManager $manager
 	 * @param $driver
 	 */
-	public function __construct(ModelManager $manager, DriverInterface $driver)
+	public function __construct(DriverInterface $driver)
 	{
-		$this->modelManager = $manager;
 		$this->driver = $driver;
 	}
 
@@ -93,8 +85,6 @@ class ModelStorage
 		foreach($collection as $model)
 		{
 			$modelState = new ModelState($model);
-			$this->modelManager->persist($model);
-
 			$newCollection->add($modelState);
 		}
 
@@ -119,10 +109,9 @@ class ModelStorage
 		$modelState->setSuccessful(false);
 		$modelState->setErrors($violationList->toArray());
 
-		$this->modelManager->persist($modelState);
-		$this->modelManager->flush($modelState);
+		$this->driver->save($modelState);
 
-		return new ModelState($modelState);
+		return $modelState;
 	}
 
 	/**
@@ -165,9 +154,7 @@ class ModelStorage
 		$modelState = $this->createModelState($model, $processName, $stepName, $previous);
 		$modelState->setSuccessful(true);
 
-		$this->modelManager->persist($modelState);
-		$this->modelManager->flush($modelState);
-
+		$this->driver->save($modelState);
 		return $modelState;
 	}
 
@@ -190,7 +177,7 @@ class ModelStorage
 		$modelState->setData($model->getWorkflowData());
 		$modelState->setProperty(DCGE::MODEL_PTABLE, $model->getEntity()->getProviderName());
 		$modelState->setProperty(DCGE::MODEL_PID, $model->getEntity()->getId());
-		$modelState->setMeta(DCGE::MODEL_IS_CHANGED, true);
+		$modelState->setProperty('tstamp', time());
 
 		if ($previous instanceof ModelState)
 		{

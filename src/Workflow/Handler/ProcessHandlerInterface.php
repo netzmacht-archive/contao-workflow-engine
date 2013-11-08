@@ -12,7 +12,13 @@ use Workflow\Model\ModelInterface;
  */
 interface ProcessHandlerInterface
 {
-    /**
+
+	/**
+	 * @return string
+	 */
+	public function getProcessName();
+
+	/**
      * Start the current process for the given model.
      *
      * @param  ModelInterface $model
