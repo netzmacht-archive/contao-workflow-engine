@@ -6,8 +6,8 @@ if(TL_MODE == 'BE')
 	/**
 	 * workflow
 	 */
-	$GLOBALS['container']['workflow'] = $GLOBALS['container']->share(function() {
-		return new \Workflow\Workflow();
+	$GLOBALS['container']['workflow.connector'] = $GLOBALS['container']->share(function() {
+		return new \Workflow\Contao\Connector();
 	});
 
 

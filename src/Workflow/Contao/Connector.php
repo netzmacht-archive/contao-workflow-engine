@@ -6,7 +6,7 @@
  * Time: 19:01
  */
 
-namespace Workflow;
+namespace Workflow\Contao;
 
 use DcaTools\Definition;
 use DcGeneral\DC_General;
@@ -14,7 +14,7 @@ use Workflow\Controller\WorkflowFactory;
 use Workflow\Entity\ModelState;
 use Workflow\Exception\WorkflowException;
 
-class Workflow
+class Connector
 {
 
 	/**
@@ -99,7 +99,20 @@ class Workflow
 	 */
 	public static function getInstance()
 	{
-		return $GLOBALS['container']['workflow'];
+		return $GLOBALS['container']['workflow.connector'];
+	}
+
+
+	/**
+	 * @param $name
+	 */
+	public function hookLoadDataContainer($name)
+	{
+		if(!in_array($name, $GLOBALS['TL_CONFIG']['workflow_disabledTables']))
+		{
+			$definition = Definition::getDataContainer($name);
+			$definition->registerCallback('onload', array('Workflow\Contao\Connector', 'initialize'));
+		}
 	}
 
 

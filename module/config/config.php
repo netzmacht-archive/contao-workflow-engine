@@ -3,7 +3,7 @@
 /**
  * hooks
  */
-$GLOBALS['TL_HOOKS']['loadDataContainer'][] = array('Workflow\Connector', 'hookLoadDataContainer');
+$GLOBALS['TL_HOOKS']['loadDataContainer'][] = array('Workflow\Contao\Connector', 'hookLoadDataContainer');
 
 
 /**
