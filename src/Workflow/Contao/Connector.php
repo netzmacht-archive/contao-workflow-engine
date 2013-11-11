@@ -13,12 +13,13 @@ use DcGeneral\DC_General;
 use Workflow\Controller\WorkflowFactory;
 use Workflow\Entity\ModelState;
 use Workflow\Exception\WorkflowException;
+use Workflow\Model\Model;
 
 class Connector
 {
 
 	/**
-	 * store if parent view is used and not a single element is accessed
+	 * Store if parent view is used and not a single element is accessed
 	 *
 	 * @param bool
 	 */
@@ -26,47 +27,59 @@ class Connector
 
 
 	/**
-	 * used int id
+	 * Used int id
+	 *
 	 * @param int
 	 */
 	protected $id;
 
 
 	/**
-	 * current action
+	 * Current action
+	 *
 	 * @param string
 	 */
 	protected $action;
 
 
 	/**
+	 * DataContainer definition
+	 *
 	 * @var \DcaTools\Definition\DataContainer
 	 */
 	protected $definition;
 
 
 	/**
-	 * @var bool
-	 */
-	protected $active = true;
-
-
-	/**
+	 * Initialisation state
+	 *
 	 * @var bool
 	 */
 	protected $initialized = false;
 
 
 	/**
-	 * @var bool[]
-	 */
-	protected $registered = array();
-
-
-	/**
+	 * Workflow controller
+	 *
 	 * @var \Workflow\Controller\Controller
 	 */
 	protected $controller;
+
+
+	/**
+	 * Track changes with save callback
+	 *
+	 * @var bool
+	 */
+	protected $reachedChanged = false;
+
+
+	/**
+	 * Cached process state names
+	 *
+	 * @var array
+	 */
+	protected $states;
 
 
 	/**
@@ -110,14 +123,20 @@ class Connector
 	{
 		if(!in_array($name, $GLOBALS['TL_CONFIG']['workflow_disabledTables']))
 		{
-			$definition = Definition::getDataContainer($name);
-			$definition->registerCallback('onload', array('Workflow\Contao\Connector', 'initialize'));
+			try {
+				$definition = Definition::getDataContainer($name);
+				$definition->registerCallback('onload', array('Workflow\Contao\Connector', 'initialize'));
+			}
+			catch(\Exception $e) {
+				\Controller::log($e->getMessage(), '\Workflow\Contao\Connector hookLoadDataContainer()', TL_ERROR);
+			}
 		}
 	}
 
 
 	/**
-	 * Initialize Workflow will be triggered
+	 * Initialize the Workflow connector
+	 *
 	 * @param $dc
 	 */
 	public function initialize($dc)
@@ -125,38 +144,60 @@ class Connector
 		if(!$this->initialized)
 		{
 			$this->initialized = true;
-			$this->initializeDefinition($dc);
 
-			/** @var \Workflow\Data\DriverManager $manager */
-			$manager = $GLOBALS['container']['workflow.driver-manager'];
-			$driver  = $manager->getDataProvider($this->definition->getName());
-			$config  = $driver->getEmptyConfig();
-			$config->setId($this->id);
-
-			$entity = $driver->fetch($config);
-
-			if(!$entity)
+			if(!$this->initializeDefinition($dc))
 			{
 				return;
 			}
 
+			if(!$this->initializeController())
+			{
+				return;
+			}
+
+			$this->registerCallbacks();
+		}
+	}
+
+
+	/**
+	 * Initialize workflow controller
+	 *
+	 * @return bool if initialisation was successful
+	 */
+	protected function initializeController()
+	{
+		/** @var \Workflow\Data\DriverManager $manager */
+		$manager = $GLOBALS['container']['workflow.driver-manager'];
+		$driver  = $manager->getDataProvider($this->definition->getName());
+		$config  = $driver->getEmptyConfig();
+
+		$config->setId($this->id);
+		$entity = $driver->fetch($config);
+
+		if($entity)
+		{
 			try {
 				$this->controller = WorkflowFactory::createController($entity);
 			}
 			catch(WorkflowException $e)
 			{
-				return;
+				// no workflow found, do not show an error
+				return false;
 			}
-
 
 			try {
 				$this->controller->initialize();
+				return true;
 			}
 			catch(WorkflowException $e)
 			{
 				$this->error($e->getMessage());
+				return false;
 			}
 		}
+
+		return false;
 	}
 
 
@@ -164,6 +205,8 @@ class Connector
 	 * Initialize Definition of object
 	 *
 	 * @param \DC_Table $dc
+	 *
+	 * @return bool
 	 */
 	protected function initializeDefinition($dc)
 	{
@@ -185,7 +228,36 @@ class Connector
 		if($this->parentView)
 		{
 			$tableName = $this->definition->getFromDefinition('config/ptable');
+
+			if(!$tableName)
+			{
+				return false;
+			}
+
 			$this->definition = Definition::getDataContainer($tableName);
+		}
+
+		return true;
+	}
+
+
+	/**
+	 * Register callbacks
+	 */
+	protected function registerCallbacks()
+	{
+		$class = get_class($this);
+
+		$this->definition->registerCallback('onsubmit', array($class, 'callbackOnSubmit'));
+		$this->definition->registerCallback('oncreate', array($class, 'callbackOnCreate'));
+		$this->definition->registerCallback('ondelete', array($class, 'callbackOnDelete'));
+
+		foreach($this->definition->getProperties() as $property)
+		{
+			if($property->isEditable())
+			{
+				$property->registerCallback('save', array($class, 'callbackSave'));
+			}
 		}
 	}
 
@@ -198,15 +270,18 @@ class Connector
 	{
 		if(\Input::get('state'))
 		{
-			$this->reachNextState(\Input::get('state'));
+			$this->reachNextState(\Input::get('state'), true);
 		}
 	}
 
 
 	/**
-	 * @param $stateName
+	 * Reach next step
+	 *
+	 * @param string $stateName
+	 * @param bool $redirect if true redirect to referer
 	 */
-	public function reachNextState($stateName)
+	public function reachNextState($stateName, $redirect=false)
 	{
 		try {
 			$this->controller->reachNextState($stateName);
@@ -216,11 +291,88 @@ class Connector
 		}
 
 		// redirect to referrer by default. If another target is required, the listener has to redirect
-		\Controller::redirect(\Controller::getReferer());
+		if($redirect)
+		{
+			\Controller::redirect(\Controller::getReferer());
+		}
 	}
 
 
 	/**
+	 * Save callback is used to track changes and try to reach the next step
+	 *
+	 * @param $value
+	 *
+	 * @return mixed
+	 */
+	public function callbackSave($value)
+	{
+		if(!$this->reachedChanged)
+		{
+			if($this->hasState('change'))
+			{
+				$this->reachNextState('change');
+			}
+
+			$this->reachedChanged = true;
+		}
+
+		return $value;
+	}
+
+
+	/**
+	 * If next step is reached we have to update the workflow model data because DC_Table does not provide a
+	 * callback for getting validated record before storing it
+	 */
+	public function callbackOnSubmit()
+	{
+		if($this->reachedChanged)
+		{
+			$state = $this->controller->getCurrentState();
+			$state->setData($this->controller->getModel()->getWorkflowData());
+
+			$driver = $this->controller->getDriverManager()->getDataProvider('tl_workflow_state');
+			$driver->save($state);
+		}
+	}
+
+
+	/**
+	 * Initialize workflow after creating element
+	 *
+	 * @param $table
+	 * @param $insertID
+	 * @param $set
+	 */
+	public function callbackOnCreate($table, $insertID, $set)
+	{
+		$driver = $this->controller->getDriverManager()->getDataProvider($table);
+
+		$entity = $driver->getEmptyModel();
+		$entity->setPropertiesAsArray($set);
+		$entity->setId($insertID);
+
+		$model = new Model($entity, $this->controller);
+		$this->controller->getProcessHandler()->start($model);
+	}
+
+
+	/**
+	 * Trigger delete action if action is defined in process steps
+	 */
+	public function callbackOnDelete()
+	{
+		if($this->hasState('delete'))
+		{
+			$this->reachNextState('delete');
+		}
+	}
+
+
+	/**
+	 * Trigger an error will create log message and redirect to error page
+	 *
 	 * @param $strMessage
 	 */
 	public static function error($strMessage)
@@ -234,6 +386,8 @@ class Connector
 
 
 	/**
+	 * Add state errors as error messages
+	 *
 	 * @param ModelState $state
 	 */
 	public static function displayStateErrors(ModelState $state)
@@ -242,6 +396,33 @@ class Connector
 		{
 			\Message::add($error, TL_ERROR);
 		}
+	}
+
+
+	/**
+	 * Check if a state action exists in process steps
+	 *
+	 * @param $name
+	 * @return bool
+	 */
+	protected function hasState($name)
+	{
+		if(!$this->states)
+		{
+			$this->states = array();
+
+			$steps = $this->controller->getProcessHandler()->getProcess()->getSteps();
+
+			foreach($steps as $step)
+			{
+				foreach($step->getNextStates() as $state)
+				{
+					$this->states[] = $state->getName();
+				}
+			}
+		}
+
+		return in_array($name, $this->states);
 	}
 
 }
