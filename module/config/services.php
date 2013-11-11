@@ -10,14 +10,6 @@ $GLOBALS['container']['workflow.connector'] = $GLOBALS['container']->share(funct
 
 
 /**
- * driver manager
- */
-$GLOBALS['container']['workflow.driver-manager'] = $GLOBALS['container']->share(function() {
-	return new \Workflow\Data\DriverManager();
-});
-
-
-/**
  * model state storage
  */
 $GLOBALS['container']['workflow.model-state-storage'] = $GLOBALS['container']->share(function($c) {
