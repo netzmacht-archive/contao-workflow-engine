@@ -72,7 +72,7 @@ class Workflow extends Entity
 
 
 	/**
-	 * @return mixed
+	 * @return \Workflow\Service\ServiceInterface[]
 	 */
 	public function getServices()
 	{
