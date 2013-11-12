@@ -9,6 +9,7 @@
 namespace Workflow\Contao\Dca;
 
 use DcaTools\Data\ConfigBuilder;
+use DcaTools\Definition;
 use DcGeneral\Data\DCGE;
 use DcGeneral\DC_General;
 
@@ -35,9 +36,15 @@ class Generic
 
 
 	/**
-	 * @var
+	 * @var \DcGeneral\Data\ModelInterface
 	 */
 	protected $model;
+
+
+	/**
+	 * @var \DcaTools\Definition\DataContainer
+	 */
+	protected $definition;
 
 
 	/**
@@ -58,29 +65,35 @@ class Generic
 	/**
 	 * @param $dc
 	 */
-	protected function initialize($dc)
+	public function initialize($dc)
 	{
 		if($dc instanceof DC_General)
 		{
-			$this->driver  = $dc->getDataProvider($dc->getTable());
 			$this->manager = $dc;
-			$id = $dc->getId();
+
+			$table = $dc->getTable();
+			$id    = $dc->getId();
 		}
 		else
 		{
 			/** @var \DcaTools\Data\DriverManagerInterface $manager */
 			$manager = $GLOBALS['container']['dcatools.driver-manager'];
-
 			$this->manager = $manager;
-			$this->driver  = $manager->getDataProvider($dc->table);
-			$id = $dc->id;
+
+			$table = $dc->table;
+			$id    = $dc->id;
 		}
 
-		$this->model = ConfigBuilder::create($this->driver)->setId($id)->fetch();
+		$this->driver     = $this->manager->getDataProvider($table);
+		$this->definition = Definition::getDataContainer($table);
+		$this->model      = ConfigBuilder::create($this->driver)->setId($id)->fetch();
 	}
 
 
-	public function getTables($dc)
+	/**
+	 * @return array
+	 */
+	public function getTables()
 	{
 		// TODO: support non database data containers
 		return array_values(array_diff(\Database::getInstance()->listTables(), $GLOBALS['TL_CONFIG']['workflow_disabledTables']));
