@@ -20,15 +20,18 @@ class StepEvent extends Event
      */
     private $step;
 
+
     /**
      * @var ModelInterface
      */
     private $model;
 
+
     /**
      * @var ModelState
      */
     private $modelState;
+
 
     /**
      * Construct.
@@ -44,6 +47,7 @@ class StepEvent extends Event
         $this->modelState = $modelState;
     }
 
+
     /**
      * Returns the reached step.
      *
@@ -53,6 +57,7 @@ class StepEvent extends Event
     {
         return $this->step;
     }
+
 
     /**
      * Returns the model.
@@ -64,6 +69,7 @@ class StepEvent extends Event
         return $this->model;
     }
 
+
     /**
      * Returs the last model state.
      *
@@ -73,4 +79,5 @@ class StepEvent extends Event
     {
         return $this->modelState;
     }
+
 }

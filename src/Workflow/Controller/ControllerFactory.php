@@ -9,9 +9,16 @@ use Workflow\Exception\WorkflowException;
 use Workflow\Handler\ProcessFactory;
 use Workflow\Handler\ProcessHandler;
 
+
+/**
+ * Class ControllerFactory
+ * @package Workflow\Controller
+ */
 class ControllerFactory
 {
 	/**
+	 * Create a controller
+	 *
 	 * @param ModelInterface $entity
 	 *
 	 * @return Controller

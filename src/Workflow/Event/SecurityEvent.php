@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 30.10.13
- * Time: 08:48
- */
 
 namespace Workflow\Event;
 

@@ -21,6 +21,11 @@ use Workflow\Model\Model;
 use Workflow\Service\ServiceFactory;
 
 
+/**
+ * Class Controller allow to run workflow tasks for an assigned Model and provides access to several objects
+ *
+ * @package Workflow\Controller
+ */
 class Controller
 {
 

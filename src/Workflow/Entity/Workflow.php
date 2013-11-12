@@ -53,12 +53,18 @@ class Workflow extends Entity
 	}
 
 
+	/**
+	 * @return mixed
+	 */
 	public function getProcessName()
 	{
 		return $this->getProperty('process');
 	}
 
 
+	/**
+	 * @param $name
+	 */
 	public function setProcessName($name)
 	{
 		$this->setProperty('process', $name);
@@ -89,6 +95,51 @@ class Workflow extends Entity
 	public function getStoreChildren()
 	{
 		return (bool) $this->getProperty('store_children');
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function getHasAuthorColumn()
+	{
+		return (bool) $this->getProperty('hasAuthorColumn');
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getAuthorColumn()
+	{
+		return $this->getProperty('authorColumn');
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function getHasPublishColumn()
+	{
+		return (bool) $this->getProperty('hasPublishColumn');
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getPublishColumn()
+	{
+		return $this->getProperty('publishColumn');
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function getInvertPublishValue()
+	{
+		return (bool) $this->getProperty('invertPublishValue');
 	}
 
 }

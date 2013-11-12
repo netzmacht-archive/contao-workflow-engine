@@ -4,6 +4,11 @@ namespace Workflow\Entity;
 
 use DcGeneral\Data\ModelInterface;
 
+
+/**
+ * Class ModelState
+ * @package Workflow\Entity
+ */
 class ModelState extends Entity
 {
 

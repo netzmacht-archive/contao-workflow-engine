@@ -22,15 +22,18 @@ class ValidateStepEvent extends Event
      */
     private $step;
 
+
     /**
      * @var ModelInterface
      */
     private $model;
 
+
     /**
      * @var ViolationList
      */
     private $violationList;
+
 
     /**
      * Constructor.
@@ -46,6 +49,7 @@ class ValidateStepEvent extends Event
         $this->violationList = $violationList;
     }
 
+
     /**
      * Returns the reached step.
      *
@@ -55,6 +59,7 @@ class ValidateStepEvent extends Event
     {
         return $this->step;
     }
+
 
     /**
      * Returns the model.
@@ -66,6 +71,7 @@ class ValidateStepEvent extends Event
         return $this->model;
     }
 
+
     /**
      * Returns the violation list.
      *
@@ -76,6 +82,7 @@ class ValidateStepEvent extends Event
         return $this->violationList;
     }
 
+
     /**
      * Proxy method to add a violation.
      *
@@ -85,4 +92,5 @@ class ValidateStepEvent extends Event
     {
         $this->violationList->add(new Violation($message));
     }
+
 }

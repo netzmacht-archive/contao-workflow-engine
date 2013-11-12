@@ -2,6 +2,10 @@
 
 namespace Workflow\Exception;
 
+/**
+ * Class AccessDeniedException
+ * @package Workflow\Exception
+ */
 class AccessDeniedException extends \Exception
 {
     /**

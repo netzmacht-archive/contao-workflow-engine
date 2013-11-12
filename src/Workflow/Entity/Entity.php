@@ -186,4 +186,4 @@ class Entity implements ModelInterface
 		$this->model = clone $this->model;
 	}
 
-} 
+}
