@@ -17,6 +17,12 @@ use Workflow\Controller\Controller;
 interface ServiceInterface
 {
 
+	/**
+	 * Construct
+	 *
+	 * @param ModelInterface $service
+	 * @param Controller $controller
+	 */
 	public function __construct(ModelInterface $service, Controller $controller);
 
 	/**

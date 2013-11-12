@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 01.11.13
- * Time: 23:12
- */
 
 namespace Workflow\Service;
 
@@ -48,7 +42,7 @@ class NotifyService extends AbstractService
 
 
 	/**
-	 *
+	 * Initialize notification service
 	 */
 	public function initialize()
 	{

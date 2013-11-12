@@ -1,22 +1,24 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 05.11.13
- * Time: 08:37
- */
 
 namespace Workflow\Service;
 
 use Workflow\Event\SecurityEvent;
 
+/**
+ * Class CoreService provides is assigned to every workflow providing core features like authentication
+ *
+ * @package Workflow\Service
+ */
 class CoreService extends AbstractService
 {
-	const VERSION = '1.0';
+	const VERSION = '1.0.0';
 
 	const IDENTIFIER = 'core';
 
+
 	/**
+	 * Initialize the core
+	 *
 	 * @inheritdoc
 	 */
 	function initialize()
@@ -27,7 +29,6 @@ class CoreService extends AbstractService
 
 
 	/**
-	 *
 	 * @throws \RuntimeException
 	 */
 	public static function getConfig()

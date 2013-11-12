@@ -11,10 +11,23 @@ use Workflow\Exception\WorkflowException;
 
 class ParentService extends AbstractService
 {
+
+	/**
+	 * @var Controller
+	 */
 	protected static $parentController;
 
+
+	/**
+	 * Store instance so the callbacks get the initialized version
+	 * @var $this
+	 */
 	protected static $instance;
 
+
+	/**
+	 * @var array
+	 */
 	protected static $config = array
 	(
 		'identifier' => 'parent',
@@ -22,6 +35,11 @@ class ParentService extends AbstractService
 		'properties' => array(),
 	);
 
+
+	/**
+	 * @param ModelInterface $service
+	 * @param Controller $controller
+	 */
 	public function __construct(ModelInterface $service, Controller $controller)
 	{
 		parent::__construct($service, $controller);
@@ -30,6 +48,11 @@ class ParentService extends AbstractService
 	}
 
 
+	/**
+	 * Get instance for Contao
+	 *
+	 * @return mixed
+	 */
 	public static function getInstance()
 	{
 		return static::$instance;
@@ -82,7 +105,7 @@ class ParentService extends AbstractService
 
 
 	/**
-	 *
+	 * Route to parent events
 	 */
 	public function callbackRouter()
 	{

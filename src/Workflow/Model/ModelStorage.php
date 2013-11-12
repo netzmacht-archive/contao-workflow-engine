@@ -10,6 +10,10 @@ use Workflow\Entity\ModelState;
 use Workflow\Validation\ViolationList;
 
 
+/**
+ * Class ModelStorage
+ * @package Workflow\Model
+ */
 class ModelStorage
 {
 
@@ -108,6 +112,7 @@ class ModelStorage
 		return $modelState;
 	}
 
+
 	/**
 	 * Delete all model states.
 	 *
@@ -178,4 +183,5 @@ class ModelStorage
 
 		return $modelState;
 	}
+
 }

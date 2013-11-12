@@ -2,6 +2,11 @@
 
 namespace Workflow\Model;
 
+
+/**
+ * Interface ModelInterface
+ * @package Workflow\Model
+ */
 interface ModelInterface
 {
     /**
@@ -21,7 +26,7 @@ interface ModelInterface
 
 
 	/**
-	 * @return \Workflow\Entity\Entity
+	 * @return \DcGeneral\Data\ModelInterface
 	 */
 	public function getEntity();
 

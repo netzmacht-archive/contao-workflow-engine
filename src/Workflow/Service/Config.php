@@ -2,7 +2,10 @@
 
 namespace Workflow\Service;
 
-
+/**
+ * Class Config
+ * @package Workflow\Service
+ */
 class Config
 {
 

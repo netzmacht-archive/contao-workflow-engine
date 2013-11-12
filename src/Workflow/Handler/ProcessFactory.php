@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 04.11.13
- * Time: 08:10
- */
 
 namespace Workflow\Handler;
 
@@ -17,6 +11,10 @@ use Workflow\Flow\Process;
 use Workflow\Flow\Step;
 
 
+/**
+ * Class ProcessFactory
+ * @package Workflow\Handler
+ */
 class ProcessFactory
 {
 

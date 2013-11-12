@@ -7,6 +7,11 @@ use DcGeneral\Data\ModelInterface;
 use Workflow\Controller\Controller;
 use Workflow\Exception\WorkflowException;
 
+
+/**
+ * Class ServiceFactory
+ * @package Workflow\Service
+ */
 class ServiceFactory
 {
 

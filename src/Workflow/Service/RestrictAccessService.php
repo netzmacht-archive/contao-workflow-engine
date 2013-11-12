@@ -1,26 +1,28 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 08.11.13
- * Time: 18:28
- */
 
 namespace Workflow\Service;
 
 use DcaTools\Definition;
 use DcaTools\Event\Helper;
 use DcaTools\Event\Listener\Operation;
-use DcaTools\Event\Listener\Permissions;
+use DcaTools\Event\Listener\DataContainer;
 use DcaTools\Event\OperationEvent;
 use DcaTools\Event\PermissionEvent;
 use DcaTools\Event\Priority;
 use DcaTools\Controller;
-use DcaTools\Permission;
 use Workflow\Model\Model;
 
+
+/**
+ * Class RestrictAccessService
+ * @package Workflow\Service
+ */
 class RestrictAccessService extends AbstractService
 {
+
+	/**
+	 * @var array|\Workflow\Service\Config
+	 */
 	protected static $config = array
 	(
 		'identifier' => 'restrict-access',
@@ -32,18 +34,37 @@ class RestrictAccessService extends AbstractService
 		),
 	);
 
+
+	/**
+	 * @var \BackendUser
+	 */
+	protected $user;
+
+
+	/**
+	 * @var array
+	 */
+	protected $roles;
+
+
 	/**
 	 * @inheritdoc
 	 */
 	function initialize()
 	{
-		$dispatcher = $this->controller->getEventDispatcher();
-		$state  = $this->controller->getCurrentState();
+		$this->user  = \BackendUser::getInstance();
+		$this->roles = deserialize($this->service->getProperty('roles'), true);
 
-		/** @var \BackendUser $user */
-		$user   = \BackendUser::getInstance();
-		$roles  = deserialize($this->service->getProperty('roles'), true);
+		$this->initializeOperations();
+		$this->initializeSteps();
+	}
 
+
+	/**
+	 * Initialize operation restrictions
+	 */
+	protected function initializeOperations()
+	{
 		$operations = deserialize($this->service->getProperty('restrict_operations'), true);
 
 		foreach($operations as $operation)
@@ -59,7 +80,7 @@ class RestrictAccessService extends AbstractService
 			}
 
 			$eventName = sprintf('dcatools.%s.%s.%s', $table, $scope == 'global' ? 'global_operations' : 'operations', $name);
-			$dispatcher->addListener($eventName, $listener);
+			$this->controller->getEventDispatcher()->addListener($eventName, $listener);
 
 			if($scope == 'global')
 			{
@@ -69,6 +90,15 @@ class RestrictAccessService extends AbstractService
 				Controller::getInstance($table)->enableOperationEvents($name);
 			}
 		}
+	}
+
+
+	/**
+	 * Initialize step restrictions
+	 */
+	protected function initializeSteps()
+	{
+		$state = $this->controller->getCurrentState();
 
 		if($state && in_array($state->getStepName(), $this->service->getProperty('steps')))
 		{
@@ -76,25 +106,28 @@ class RestrictAccessService extends AbstractService
 
 			foreach($restrictions as $restriction)
 			{
-				if(!$user->hasAccess($roles, sprintf('workflow_%s', $restriction['table'])))
+				// user has access, no limitation
+				if($this->user->hasAccess($this->roles, sprintf('workflow_%s', $restriction['table'])))
 				{
-					$definition = Definition::getDataContainer($restriction['table']);
-
-					if($restriction['notSortable'] && $definition->get('list/sorting/fields/0') == 'sorting')
-					{
-						$definition->set('list/sorting/fields', array('sorting '));
-
-						if($restriction['table'] == \Input::get('table'))
-						{
-							$event = new PermissionEvent($this->controller->getModel()->getEntity(), array('error' => ''));
-							\DcaTools\Event\Listener\DataContainer::forbidden($event, array('act' => 'paste'));
-						}
-					}
-
-					$definition->set('config/closed', (bool) $restriction['closed']);
-					$definition->set('config/notEditable', (bool) $restriction['notEditable']);
-					$definition->set('config/notDeletable', (bool) $restriction['notDeletable']);
+					continue;
 				}
+
+				$definition = Definition::getDataContainer($restriction['table']);
+
+				if($restriction['notSortable'] && $definition->get('list/sorting/fields/0') == 'sorting')
+				{
+					$definition->set('list/sorting/fields', array('sorting '));
+
+					if($restriction['table'] == \Input::get('table'))
+					{
+						$event = new PermissionEvent($this->controller->getModel()->getEntity(), array('error' => ''));
+						DataContainer::forbidden($event, array('act' => 'paste'));
+					}
+				}
+
+				$definition->set('config/closed', (bool) $restriction['closed']);
+				$definition->set('config/notEditable', (bool) $restriction['notEditable']);
+				$definition->set('config/notDeletable', (bool) $restriction['notDeletable']);
 			}
 		}
 	}
@@ -126,6 +159,7 @@ class RestrictAccessService extends AbstractService
 			}
 		}
 	}
+
 
 	/**
 	 * @param OperationEvent $event

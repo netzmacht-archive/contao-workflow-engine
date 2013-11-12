@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 01.11.13
- * Time: 23:27
- */
 
 namespace Workflow\Service;
 
@@ -12,6 +6,12 @@ use DcaTools\Translator;
 use DcGeneral\Data\ModelInterface;
 use Workflow\Controller\Controller;
 
+
+/**
+ * Class AbstractService implements basic methods for workflow services
+ *
+ * @package Workflow\Service
+ */
 abstract class AbstractService implements ServiceInterface
 {
 
@@ -48,6 +48,8 @@ abstract class AbstractService implements ServiceInterface
 
 
 	/**
+	 * Initialize the workflow service
+	 *
 	 * @inheritdoc
 	 */
 	abstract function initialize();
@@ -77,6 +79,8 @@ abstract class AbstractService implements ServiceInterface
 
 
 	/**
+	 * Get config
+	 *
 	 * @return Config
 	 */
 	public static function getConfig()
