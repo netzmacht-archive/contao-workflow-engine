@@ -2,8 +2,8 @@
 
 namespace Workflow\Contao\Dca;
 
+use DcaTools\Data\ConfigBuilder;
 use DcaTools\Definition;
-use DcaTools\Model\FilterBuilder;
 use DcaTools\Translator;
 
 
@@ -59,9 +59,8 @@ class Service extends Generic
 		/** @var \DcaTools\Data\DriverManagerInterface $manager */
 		$manager = $container['dcatools.driver-manager'];
 		$driver  = $manager->getDataProvider($dc->table);
-		$config  = FilterBuilder::create()->addEquals('id', $dc->id)->getConfig($driver);
-		
-		$this->entity = $driver->fetch($config);
+
+		$this->entity = ConfigBuilder::create($driver)->setId($dc->id)->fetch();
 
 		if(!$this->entity)
 		{

@@ -10,7 +10,7 @@ namespace Workflow\Contao;
 
 use DcaTools\Definition;
 use DcGeneral\DC_General;
-use Workflow\Controller\WorkflowFactory;
+use Workflow\Controller\ControllerFactory;
 use Workflow\Entity\ModelState;
 use Workflow\Exception\WorkflowException;
 use Workflow\Model\Model;
@@ -178,7 +178,7 @@ class Connector
 		if($entity)
 		{
 			try {
-				$this->controller = WorkflowFactory::createController($entity);
+				$this->controller = ControllerFactory::create($entity);
 			}
 			catch(WorkflowException $e)
 			{

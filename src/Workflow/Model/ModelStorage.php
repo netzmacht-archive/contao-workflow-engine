@@ -2,7 +2,7 @@
 
 namespace Workflow\Model;
 
-use DcaTools\Model\FilterBuilder;
+use DcaTools\Data\ConfigBuilder;
 use DcGeneral\Data\DCGE;
 use DcGeneral\Data\DriverInterface;
 use Workflow\Entity\Entity;
@@ -37,15 +37,12 @@ class ModelStorage
 	 */
 	public function findCurrentModelState(ModelInterface $model, $processName)
 	{
-		$builder = FilterBuilder::create()
-			->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
-			->addEquals('processName', $processName)
-			->addEquals('successful', true);
-
-		$config = $builder->getConfig($this->driver);
-		$config->setSorting(array('id' => DCGE::MODEL_SORTING_DESC));
-
-		$entity =  $this->driver->fetch($config);
+		$entity = ConfigBuilder::create($this->driver)
+			->filterEquals('workflowIdentifier', $model->getWorkflowIdentifier())
+			->filterEquals('processName', $processName)
+			->filterEquals('successful', true)
+			->sorting('id', DCGE::MODEL_SORTING_DESC)
+			->fetch();
 
 		if($entity === null)
 		{
@@ -67,28 +64,25 @@ class ModelStorage
 	 */
 	public function findAllModelStates(ModelInterface $model, $processName, $successOnly = true)
 	{
-		$builder = FilterBuilder::create()
-			->addEquals('workflowIdentifier', $model->getWorkflowIdentifier())
-			->addEquals('processName', $processName);
+		$builder = ConfigBuilder::create($this->driver)
+			->filterEquals('workflowIdentifier', $model->getWorkflowIdentifier())
+			->filterEquals('processName', $processName)
+			->sorting('createdAt', DCGE::MODEL_SORTING_ASC);
 
 		if($successOnly)
 		{
-			$builder->addEquals('successful', true);
+			$builder->filterEquals('successful', true);
 		}
 
-		$config = $builder->getConfig($this->driver);
-		$config->setSorting(array('createdAt' => DCGE::MODEL_SORTING_ASC));
+		$collection = $this->driver->getEmptyCollection();
 
-		$collection = $this->driver->fetchAll($config);
-		$newCollection = $this->driver->getEmptyCollection();
-
-		foreach($collection as $model)
+		foreach($builder->fetchAll() as $model)
 		{
 			$modelState = new ModelState($model);
-			$newCollection->add($modelState);
+			$collection->add($modelState);
 		}
 
-		return $newCollection;
+		return $collection;
 	}
 
 
@@ -122,18 +116,16 @@ class ModelStorage
 	 */
 	public function deleteAllModelStates(ModelInterface $model, $processName = null)
 	{
-		$builder = FilterBuilder::create()
-			->addEquals('workflowIdentifier', $model->getWorkflowIdentifier());
+		$builder = ConfigBuilder::create($this->driver)
+			->filterEquals('workflowIdentifier', $model->getWorkflowIdentifier())
+			->setIdOnly(true);
 
 		if($processName !== null)
 		{
-			$builder->addEquals('processName', $processName);
+			$builder->filterEquals('processName', $processName);
 		}
 
-		$config = $builder->getConfig($this->driver);
-		$config->setIdOnly(true);
-
-		foreach($this->driver->fetchAll($config) as $id)
+		foreach($builder->fetchAll() as $id)
 		{
 			$this->driver->delete($id);
 		}

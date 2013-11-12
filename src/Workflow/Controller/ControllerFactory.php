@@ -2,61 +2,43 @@
 
 namespace Workflow\Controller;
 
-use DcaTools\Model\FilterBuilder;
+use DcaTools\Data\ConfigBuilder;
 use DcGeneral\Data\ModelInterface;
+use Workflow\Entity\Workflow;
 use Workflow\Exception\WorkflowException;
 use Workflow\Handler\ProcessFactory;
 use Workflow\Handler\ProcessHandler;
 
 class ControllerFactory
 {
-
-
-
-
-	public static function createWorkflow($table)
-	{
-		global $container;
-
-		$driverManager   = $container['dcatools.driver-manager'];
-	}
-
-
 	/**
-	 * @param $processId
-	 * @return ProcessHandler
-	 */
-	public static function createProcessHandler($processId)
-	{
-		global $container;
-
-		$process  = ProcessFactory::create($processId);
-		$handler  = new ProcessHandler($process, $container['event-dispatcher'], $container['workflow.model-state-storage']);
-
-		return $handler;
-	}
-
-
-	/**
-	 * @param ModelInterface $model
-	 * @param \DcaTools\Data\DriverManagerInterface $driverManager
+	 * @param ModelInterface $entity
 	 *
-	 * @throws WorkflowException
-	 * @return ModelInterface
+	 * @return Controller
+	 * @throws
 	 */
-	protected static function loadWorkflow(ModelInterface $model, $driverManager)
+	public static function create(ModelInterface $entity)
 	{
+		global $container;
+
+		/** @var \DcaTools\Data\DriverManagerInterface $driverManager */
+		$driverManager   = $container['dcatools.driver-manager'];
+		$eventDispatcher = $container['event-dispatcher'];
+		$stateStorage    = $container['workflow.model-state-storage'];
+
 		$driver = $driverManager->getDataProvider('tl_workflow');
+		$model  = ConfigBuilder::create($driver)->filterEquals('forTable', $entity->getProviderName())->fetch();
 
-		$config = FilterBuilder::create()->addEquals('forTable', $model->getProviderName())->getConfig($driver);
-		$workflow = $driver->fetch($config);
-
-		if(!$workflow)
+		if(!$model)
 		{
-			throw new WorkflowException(sprintf('No workflow found for model of "%s" with ID "%s', $model->getProviderName(), $model->getId()));
+			throw new WorkflowException(sprintf('Undefined workflow for "%s"', $entity->getProviderName()));
 		}
 
-		return $workflow;
+		$workflow = new Workflow($model);
+		$process  = ProcessFactory::create($workflow->getProcessName());
+		$handler  = new ProcessHandler($process, $eventDispatcher, $stateStorage);
+
+		return new Controller($entity, $workflow, $handler, $eventDispatcher, $driverManager);
 	}
 
 }

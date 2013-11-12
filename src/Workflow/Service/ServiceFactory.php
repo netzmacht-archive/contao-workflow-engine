@@ -2,7 +2,7 @@
 
 namespace Workflow\Service;
 
-use DcaTools\Model\FilterBuilder;
+use DcaTools\Data\ConfigBuilder;
 use DcGeneral\Data\ModelInterface;
 use Workflow\Controller\Controller;
 use Workflow\Exception\WorkflowException;
@@ -39,24 +39,24 @@ class ServiceFactory
 				return $service;
 			}
 
+			$builder = ConfigBuilder::create($driver);
+
 			if(is_numeric($service))
 			{
-				$config = $driver->getEmptyConfig();
-				$config->setId($service);
+				$builder->setId($service);
 			}
 			else
 			{
-				$config = FilterBuilder::create()
-					->addEquals('service', $service)
-					->addEquals('pid', $controller->getWorkflow()->getId())
-					->getConfig($driver);
+				$builder
+					->filterEquals('service', $service)
+					->filterEquals('pid', $controller->getWorkflow()->getId());
 			}
 
-			$service = $driver->fetch($config);
+			$service = $builder->fetch();
 
 			if($service === null)
 			{
-				throw new WorkflowException(sprintf('Unknown service with ID "%s', $config->getId()));
+				throw new WorkflowException('Unknown service with ID');
 			}
 		}
 
@@ -112,11 +112,11 @@ class ServiceFactory
 		}
 
 		$driver = $controller->getDriverManager()->getDataProvider('tl_workflow_service');
-		$config = FilterBuilder::create()->addIn('id', $ids)->getConfig($driver);
+		$builder = ConfigBuilder::create($driver)->filterIn('id', $ids);
 		$services = array();
 
 		/** @var \DcGeneral\Data\ModelInterface $serviceModel */
-		foreach($driver->fetchAll($config) as $serviceModel)
+		foreach($builder->fetchAll() as $serviceModel)
 		{
 			$services[] = static::create($serviceModel, $controller);
 		}

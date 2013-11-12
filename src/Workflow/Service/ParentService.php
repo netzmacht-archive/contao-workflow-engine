@@ -5,7 +5,7 @@ namespace Workflow\Service;
 use DcaTools\Definition;
 use DcGeneral\Data\ModelInterface;
 use Workflow\Controller\Controller;
-use Workflow\Controller\WorkflowFactory;
+use Workflow\Controller\ControllerFactory;
 use Workflow\Exception\WorkflowException;
 
 
@@ -59,7 +59,7 @@ class ParentService extends AbstractService
 			throw new WorkflowException('Huh, could not load parent');
 		}
 
-		$controller = WorkflowFactory::createController($entity);
+		$controller = ControllerFactory::create($entity);
 		$controller->initialize();
 
 		static::$parentController = $controller;

@@ -11,7 +11,7 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 
 		'onload_callback' => array
 		(
-
+			array('Workflow\Contao\Dca\Workflow', 'initializeDriver'),
 		),
 
 		'sql' => array
@@ -81,8 +81,15 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 		'default' => array
 		(
 			'title'    => array('title', 'process', 'forTable'),
-			'storage'  => array('store_children', 'data_properties')
+			'mapping'  => array('hasPublishColumn', 'hasAuthorColumn'),
+			'storage'  => array('store_children', 'data_properties'),
 		),
+	),
+
+	'metasubpalettes' => array
+	(
+		'hasPublishColumn' => array('invertPublishValue', 'publishColumn'),
+		'hasAuthorColumn'  => array('authorColumn'),
 	),
 
 	'fields' => array
@@ -156,5 +163,56 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 			'eval'              => array('tl_class' => 'clr', 'multiple' => true,),
 			'sql'               => "blob NULL",
 		),
+
+		'hasPublishColumn' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow']['hasPublishColumn'],
+			'inputType'         => 'checkbox',
+			'eval'              => array('tl_class' => 'clr w50', 'submitOnChange' => true,),
+			'sql'               => "char(1) NOT NULL default ''",
+		),
+
+		'publishColumn' => array
+		(
+			'label'         => &$GLOBALS['TL_LANG']['tl_workflow']['publishColumn'],
+			'inputType'     => 'select',
+			'default'       => 'published',
+			'options_callback'  => array('Workflow\Contao\Dca\Workflow', 'getColumns'),
+			'eval' => array
+			(
+				'tl_class' => 'w50',
+			),
+			'sql'           => "int(10) unsigned NOT NULL default '0'"
+		),
+
+		'invertPublishValue' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow']['invertPublishValue'],
+			'inputType'         => 'checkbox',
+			'eval'              => array('tl_class' => 'w50',),
+			'sql'               => "char(1) NOT NULL default ''",
+		),
+
+		'hasAuthorColumn' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow']['hasAuthorColumn'],
+			'inputType'         => 'checkbox',
+			'eval'              => array('tl_class' => 'clr w50', 'submitOnChange' => true,),
+			'sql'               => "char(1) NOT NULL default ''",
+		),
+
+		'authorColumn' => array
+		(
+			'label'         => &$GLOBALS['TL_LANG']['tl_workflow']['authorColumn'],
+			'inputType'     => 'select',
+			'default'       => 'published',
+			'options_callback'  => array('Workflow\Contao\Dca\Workflow', 'getColumns'),
+			'eval' => array
+			(
+				'tl_class' => 'w50',
+			),
+			'sql'           => "int(10) unsigned NOT NULL default '0'"
+		),
+
 	),
 );

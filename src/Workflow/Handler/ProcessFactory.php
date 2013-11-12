@@ -8,8 +8,8 @@
 
 namespace Workflow\Handler;
 
+use DcaTools\Data\ConfigBuilder;
 use DcaTools\Definition;
-use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\ModelInterface;
 use Workflow\Exception\WorkflowException;
 use Workflow\Flow\NextStateInterface;
@@ -73,10 +73,8 @@ class ProcessFactory
 	{
 		/** @var \DcaTools\Data\DriverManager $driverManager */
 		$driverManager = $GLOBALS['container']['dcatools.driver-manager'];
-		$driver = $driverManager->getDataProvider('tl_workflow_process');
-
-		$config = FilterBuilder::create()->addEquals('name', $name)->getConfig($driver);
-		$model = $driver->fetch($config);
+		$driver        = $driverManager->getDataProvider('tl_workflow_process');
+		$model         = ConfigBuilder::create($driver)->filterEquals('name', $name)->fetch();
 
 		if($model === null)
 		{
@@ -97,16 +95,14 @@ class ProcessFactory
 	public static function createFromModel(ModelInterface $model)
 	{
 		/** @var \DcaTools\Data\DriverManager $driverManager */
-		$driverManager = $GLOBALS['container']['dcatools.driver-manager'];
-		$driver = $driverManager->getDataProvider('tl_workflow_step');
+		$driverManager   = $GLOBALS['container']['dcatools.driver-manager'];
+		$driver          = $driverManager->getDataProvider('tl_workflow_step');
+		$stepsCollection = ConfigBuilder::create($driver)->filterEquals('pid', $model->getId())->fetchAll();
 
-		$config = FilterBuilder::create()->addEquals('pid', $model->getId())->getConfig($driver);
-		$stepsCollection = $driver->fetchAll($config);
-
-		$steps = array();
+		$steps       = array();
 		$stepsConfig = array();
-		$start = null;
-		$end = array();
+		$start       = null;
+		$end         = array();
 
 		// pre generate config array, so we can find children steps
 		foreach($stepsCollection as $step)

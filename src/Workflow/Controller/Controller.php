@@ -9,7 +9,7 @@
 namespace Workflow\Controller;
 
 
-use DcaTools\Model\FilterBuilder;
+use DcaTools\Data\ConfigBuilder;
 use DcGeneral\Data\DCGE;
 use DcGeneral\Data\ModelInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -104,11 +104,10 @@ class Controller
 		$this->workflow->addService($coreService);
 
 		$driver = $this->getDriverManager()->getDataProvider('tl_workflow_service');
-		$config = FilterBuilder::create()
-			->addEquals('pid', $this->workflow->getId())
-			->getConfig($driver);
-
-		$config->setSorting(array('sorting' => 'asc'));
+		$config = ConfigBuilder::create($driver)
+			->filterEquals('pid', $this->workflow->getId())
+			->sorting('sorting')
+			->getConfig();
 
 		foreach($driver->fetchAll($config) as $entity)
 		{

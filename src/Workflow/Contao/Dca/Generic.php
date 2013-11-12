@@ -8,6 +8,7 @@
 
 namespace Workflow\Contao\Dca;
 
+use DcaTools\Data\ConfigBuilder;
 use DcGeneral\Data\DCGE;
 use DcGeneral\DC_General;
 
@@ -34,6 +35,12 @@ class Generic
 
 
 	/**
+	 * @var
+	 */
+	protected $model;
+
+
+	/**
 	 * Singleton
 	 * @return static
 	 */
@@ -51,12 +58,13 @@ class Generic
 	/**
 	 * @param $dc
 	 */
-	protected function initializeDriver($dc)
+	protected function initialize($dc)
 	{
 		if($dc instanceof DC_General)
 		{
 			$this->driver  = $dc->getDataProvider($dc->getTable());
 			$this->manager = $dc;
+			$id = $dc->getId();
 		}
 		else
 		{
@@ -65,7 +73,10 @@ class Generic
 
 			$this->manager = $manager;
 			$this->driver  = $manager->getDataProvider($dc->table);
+			$id = $dc->id;
 		}
+
+		$this->model = ConfigBuilder::create($this->driver)->setId($id)->fetch();
 	}
 
 

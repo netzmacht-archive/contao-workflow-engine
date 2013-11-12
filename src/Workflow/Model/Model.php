@@ -2,8 +2,8 @@
 
 namespace Workflow\Model;
 
+use DcaTools\Data\ConfigBuilder;
 use DcaTools\Definition;
-use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\ModelInterface as EntityInterface;
 use Workflow\Controller\Controller;
 
@@ -90,18 +90,16 @@ class Model implements ModelInterface
 			$definition = Definition::getDataContainer($table);
 			$driver = $this->controller->getDriverManager()->getDataProvider($table);
 
-			$builder = FilterBuilder::create()
-				->addEquals('pid', $this->getEntity()->getId());
+			$builder = ConfigBuilder::create($driver)
+				->filterEquals('pid', $this->getEntity()->getId())
+				->setFields($properties);
 
 			if($definition->get('config/dynamicPtable'))
 			{
-				$builder->addEquals('ptable', $this->getEntity()->getProviderName());
+				$builder->filterEquals('ptable', $this->getEntity()->getProviderName());
 			}
 
-			$config = $builder->getConfig($driver);
-			$config->setFields($properties);
-
-			foreach($driver->fetchAll($config) as $child)
+			foreach($builder->fetchAll() as $child)
 			{
 				/** @var \DcGeneral\Data\ModelInterface $child */
 				$data['_children'][$table][$child->getId()] = $child->getPropertiesAsArray();

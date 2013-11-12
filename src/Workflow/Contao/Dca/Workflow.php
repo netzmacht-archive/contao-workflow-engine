@@ -9,8 +9,6 @@
 namespace Workflow\Contao\Dca;
 
 use DcaTools\Definition;
-use DcaTools\Model\FilterBuilder;
-use DcGeneral\Data\DCGE;
 
 class Workflow extends Generic
 {
@@ -61,4 +59,18 @@ class Workflow extends Generic
 		return $properties;
 	}
 
-} 
+
+	public function getColumns($dc)
+	{
+		$definition = Definition::getDataContainer($dc->table);
+		$properties = array();
+
+		foreach($definition->getProperties() as $name => $property)
+		{
+			$properties[$name] = $property->getLabel()[0] ?: $name;
+		}
+
+		return $properties;
+	}
+
+}

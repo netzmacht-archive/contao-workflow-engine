@@ -8,7 +8,7 @@
 
 namespace Workflow\Service;
 
-use DcaTools\Model\FilterBuilder;
+use DcaTools\Data\ConfigBuilder;
 use Workflow\Event\StepEvent;
 
 
@@ -109,14 +109,13 @@ class NotifyService extends AbstractService
 		if($this->service->getProperty('notify_users'))
 		{
 			$userIds = deserialize($this->service->getProperty('notify_users'), true);
-
-			$driver = $this->controller->getDriverManager()->getDataProvider('tl_user');
-
-			$config = FilterBuilder::create()->addIn('id', $userIds)->getConfig($driver);
-			$config->setFields(array('email'));
+			$driver  = $this->controller->getDriverManager()->getDataProvider('tl_user');
+			$builder = ConfigBuilder::create($driver)
+				->filterIn('id', $userIds)
+				->field($email);
 
 			/** @var \DcGeneral\Data\ModelInterface $user */
-			foreach($driver->fetchAll($config) as $user)
+			foreach($builder->fetchAll() as $user)
 			{
 				try {
 					$email->sendTo($user->getProperty('email'));
