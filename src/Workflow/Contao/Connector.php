@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 26.10.13
- * Time: 19:01
- */
 
 namespace Workflow\Contao;
 
@@ -210,10 +204,13 @@ class Connector
 	 */
 	protected function initializeDefinition($dc)
 	{
+		/** @var \Pimple $container */
+		global $container;
+
 		if($dc instanceof DC_General)
 		{
 			// no need for own driver manager, use Dc_General
-			$GLOBALS['container']['dcatools.driver-manager'] = $GLOBALS['container']->share(function() use($dc) {
+			$GLOBALS['container']['dcatools.driver-manager'] = $container->share(function() use($dc) {
 				return $dc;
 			});
 
