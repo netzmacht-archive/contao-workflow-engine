@@ -106,7 +106,7 @@ class NotifyService extends AbstractService
 			$driver  = $this->controller->getDriverManager()->getDataProvider('tl_user');
 			$builder = ConfigBuilder::create($driver)
 				->filterIn('id', $userIds)
-				->field($email);
+				->field('email');
 
 			/** @var \DcGeneral\Data\ModelInterface $user */
 			foreach($builder->fetchAll() as $user)
