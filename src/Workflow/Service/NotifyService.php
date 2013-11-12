@@ -52,7 +52,7 @@ class NotifyService extends AbstractService
 	 */
 	public function initialize()
 	{
-		$processName = $this->controller->getProcessHandler()->getProcessName();
+		$processName = $this->controller->getProcessHandler()->getProcess()->getName();
 
 		/** @var \DcGeneral\Data\ModelInterface $step */
 		foreach($this->service->getProperty('steps') as $step)

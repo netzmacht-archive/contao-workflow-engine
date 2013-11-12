@@ -44,7 +44,7 @@ abstract class Node
     /**
      * Returns all next steps.
      *
-     * @return array
+     * @return NextStateInterface[]
      */
     public function getNextStates()
     {

@@ -112,14 +112,6 @@ $GLOBALS['TL_DCA']['tl_workflow_process'] = array
 			'sql'           => "varchar(255) NOT NULL default ''",
 		),
 
-		'routine' => array(
-			'label'         => &$GLOBALS['TL_LANG']['tl_workflow_process']['routine'],
-			'inputType'          => 'radio',
-			'options_callback' => array('Workflow\Contao\Dca\Process', 'getRoutines'),
-			'eval'          => array('multiple' => true),
-			'sql'           => "varchar(64) NOT NULL default ''",
-		),
-
 		'roles' => array
 		(
 			'label'         => &$GLOBALS['TL_LANG']['tl_workflow_process']['roles'],

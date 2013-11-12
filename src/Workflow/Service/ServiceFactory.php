@@ -25,8 +25,8 @@ class ServiceFactory
 
 		if(!$service instanceof ModelInterface)
 		{
-			/** @var \Workflow\Data\DriverManagerInterface $driverManager */
-			$driverManager = $container['workflow.driver-manager'];
+			/** @var \DcaTools\Data\DriverManagerInterface $driverManager */
+			$driverManager = $container['dcatools.driver-manager'];
 			$driver = $driverManager->getDataProvider('tl_workflow_service');
 
 			if($service == 'core')
@@ -35,7 +35,6 @@ class ServiceFactory
 				$model->setId($service);
 
 				$service = new CoreService($model, $controller);
-				$service->initialize();
 
 				return $service;
 			}
@@ -72,7 +71,6 @@ class ServiceFactory
 
 		/** @var \Workflow\Service\ServiceInterface $service */
 		$service = new $serviceClass($service, $controller);
-		$service->initialize();
 
 		return $service;
 	}

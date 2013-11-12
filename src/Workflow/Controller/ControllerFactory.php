@@ -5,6 +5,7 @@ namespace Workflow\Controller;
 use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\ModelInterface;
 use Workflow\Exception\WorkflowException;
+use Workflow\Handler\ProcessFactory;
 use Workflow\Handler\ProcessHandler;
 
 class ControllerFactory
@@ -17,7 +18,7 @@ class ControllerFactory
 	{
 		global $container;
 
-		$driverManager   = $container['workflow.driver-manager'];
+		$driverManager   = $container['dcatools.driver-manager'];
 	}
 
 
@@ -29,10 +30,7 @@ class ControllerFactory
 	{
 		global $container;
 
-		/** @var \Workflow\Handler\ProcessManager $processManager */
-		$processManager = $container['workflow.process-manager'];
-
-		$process  = $processManager->getProcess($processId);
+		$process  = ProcessFactory::create($processId);
 		$handler  = new ProcessHandler($process, $container['event-dispatcher'], $container['workflow.model-state-storage']);
 
 		return $handler;
@@ -41,7 +39,7 @@ class ControllerFactory
 
 	/**
 	 * @param ModelInterface $model
-	 * @param \Workflow\Data\DriverManagerInterface $driverManager
+	 * @param \DcaTools\Data\DriverManagerInterface $driverManager
 	 *
 	 * @throws WorkflowException
 	 * @return ModelInterface

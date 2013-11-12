@@ -4,8 +4,8 @@ namespace Workflow\Model;
 
 use DcaTools\Definition;
 use DcaTools\Model\FilterBuilder;
-use Workflow\Controller\Controller;
 use DcGeneral\Data\ModelInterface as EntityInterface;
+use Workflow\Controller\Controller;
 
 
 /**

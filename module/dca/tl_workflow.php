@@ -29,12 +29,12 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 		'sorting' => array
 		(
 			'mode' => 1,
-			'fields' => array('forModule', 'forTable'),
+			'fields' => array('forTable'),
 		),
 
 		'label' => array
 		(
-			'fields'         => array('title', 'forModule', 'forTable'),
+			'fields'         => array('title', 'forTable'),
 			'label_callback' => array('Workflow\Contao\Dca\Workflow', 'callbackLabel'),
 		),
 
@@ -81,7 +81,6 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 		'default' => array
 		(
 			'title'    => array('title', 'process', 'forTable'),
-			'services' => array('services'),
 			'storage'  => array('store_children', 'data_properties')
 		),
 	),
@@ -110,20 +109,6 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 			'sql'           => "varchar(255) NOT NULL default ''",
 		),
 
-		'forModule' => array
-		(
-			'label'         => &$GLOBALS['TL_LANG']['tl_workflow']['forModule'],
-			'inputType' => 'select',
-			'options_callback' => array('Workflow\Contao\Dca\Workflow', 'getModules'),
-			'reference' => &$GLOBALS['TL_LANG']['MOD'],
-			'eval' => array
-			(
-				'includeBlankOption' => true,
-				'tl_class' => 'w50',
-			),
-			'sql'           => "varchar(64) NOT NULL default ''",
-		),
-
 		'forTable' => array
 		(
 			'label'         => &$GLOBALS['TL_LANG']['tl_workflow']['forTable'],
@@ -148,39 +133,6 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 				'tl_class' => 'w50',
 			),
 			'sql'           => "int(10) unsigned NOT NULL default '0'"
-		),
-
-		'services' => array
-		(
-			'label'         => &$GLOBALS['TL_LANG']['tl_workflow']['services'],
-			'inputType'     => 'multiColumnWizard',
-			'eval'          => array
-			(
-				'columnFields' => array
-				(
-					'service' => array
-					(
-						'label'            => &$GLOBALS['TL_LANG']['tl_workflow']['service'],
-						'inputType'        => 'select',
-						'options_callback' => array('Workflow\Contao\Dca\Workflow', 'getServices'),
-						'eval'          => array
-						(
-							'style' => 'width: 280px',
-						),
-					),
-
-					'disabled' => array
-					(
-						'label'         => &$GLOBALS['TL_LANG']['tl_workflow']['service_disabled'],
-						'inputType'     => 'checkbox',
-						'eval'          => array
-						(
-							'style' => 'width: 80px',
-						),
-					),
-				),
-			),
-			'sql'           => "blob NULL",
 		),
 
 		'store_children' => array

@@ -8,9 +8,16 @@
 
 namespace Workflow\Service;
 
-
 use DcaTools\Definition;
 use DcaTools\Event\Helper;
+use DcaTools\Event\Listener\Operation;
+use DcaTools\Event\Listener\Permissions;
+use DcaTools\Event\OperationEvent;
+use DcaTools\Event\PermissionEvent;
+use DcaTools\Event\Priority;
+use DcaTools\Controller;
+use DcaTools\Permission;
+use Workflow\Model\Model;
 
 class RestrictAccessService extends AbstractService
 {
@@ -21,7 +28,7 @@ class RestrictAccessService extends AbstractService
 		'properties' => array
 		(
 			'scope'  => array('steps','roles'),
-			'config' => array('restrict_tables', 'restrict_operations'),
+			'config' => array('restrictions', 'restrict_operations'),
 		),
 	);
 
@@ -31,49 +38,133 @@ class RestrictAccessService extends AbstractService
 	function initialize()
 	{
 		$dispatcher = $this->controller->getEventDispatcher();
-		$definition = Definition::getDataContainer($this->controller->getWorkflow()->getTable());
 		$state  = $this->controller->getCurrentState();
+
+		/** @var \BackendUser $user */
 		$user   = \BackendUser::getInstance();
 		$roles  = deserialize($this->service->getProperty('roles'), true);
 
-		if($state
-			&& in_array($state->getStepName(), $this->service->getProperty('steps'))
-			&& $user->isAdmin || $user->hasAccess($roles ,sprintf('workflow_%s', $definition->getName()))
-		) {
+		$operations = deserialize($this->service->getProperty('restrict_operations'), true);
 
-			$operations = deserialize($this->service->getProperty('restrict_operations'), true);
+		foreach($operations as $operation)
+		{
+			list($table, $scope, $name) = explode('::', $operation['operation']);
 
-			foreach($operations as $operation)
+			if($operation['mode'] == 'hide')
 			{
-				list($table, $scope, $name) = explode('::', $operation['operation']);
+				$listener = Helper::getListener(array($this, 'disableIcon'), Priority::BEFORE);
+			}
+			else {
+				$listener = Helper::getListener(array($this, 'disableIcon'), Priority::BEFORE);
+			}
 
-				if($operation['mode'] == 'hide')
+			$eventName = sprintf('dcatools.%s.%s.%s', $table, $scope == 'global' ? 'global_operations' : 'operations', $name);
+			$dispatcher->addListener($eventName, $listener);
+
+			if($scope == 'global')
+			{
+				Controller::getInstance($table)->enableGlobalOperationEvents($name);
+			}
+			else {
+				Controller::getInstance($table)->enableOperationEvents($name);
+			}
+		}
+
+		if($state && in_array($state->getStepName(), $this->service->getProperty('steps')))
+		{
+			$restrictions = deserialize($this->service->getProperty('restrictions'), true);
+
+			foreach($restrictions as $restriction)
+			{
+				if(!$user->hasAccess($roles, sprintf('workflow_%s', $restriction['table'])))
 				{
-					$listener = Helper::getListener(array('DcaTools\Event\Listener\Operation', 'disable', array('value' => true)));
+					$definition = Definition::getDataContainer($restriction['table']);
+
+					if($restriction['notSortable'] && $definition->get('list/sorting/fields/0') == 'sorting')
+					{
+						$definition->set('list/sorting/fields', array('sorting '));
+
+						if($restriction['table'] == \Input::get('table'))
+						{
+							$event = new PermissionEvent($this->controller->getModel()->getEntity(), array('error' => ''));
+							\DcaTools\Event\Listener\DataContainer::forbidden($event, array('act' => 'paste'));
+						}
+					}
+
+					$definition->set('config/closed', (bool) $restriction['closed']);
+					$definition->set('config/notEditable', (bool) $restriction['notEditable']);
+					$definition->set('config/notDeletable', (bool) $restriction['notDeletable']);
 				}
-				else {
-					$listener = Helper::getListener(array('DcaTools\Event\Listener\Operation', 'disable', array('value' => true)));
-				}
-
-				$eventName = sprintf('dcatools.%s.%s', $scope == 'global' ? 'global_operations' : 'operations', $name);
-				$dispatcher->addListener($eventName, $listener);
 			}
-
-			/*
-			$definition->getOperation('editheader')->remove();
-			$definition->getOperation('delete')->remove();
-			$definition->getOperation('cut')->remove();
-			$definition->getOperation('toggle')->remove();
-
-			$definition->getOperation('all', 'global')->remove();
-
-			if($definition->get('list/sorting/fields/0') == 'sorting')
-			{
-				$definition->set('list/sorting/fields/0', 'sorting ');
-			}
-			*/
 		}
 	}
 
+
+	/**
+	 * @param OperationEvent $event
+	 */
+	public function disableIcon(OperationEvent $event)
+	{
+		/** @var \BackendUser $user */
+		$user    = \BackendUser::getInstance();
+		$roles   = deserialize($this->service->getProperty('roles'), true);
+
+		$model   = $this->getCurrentModel($event);
+		$handler = $this->controller->getProcessHandler();
+		$state   = $handler->getCurrentState($model);
+
+		if(!$state)
+		{
+			$state = $handler->start($model);
+		}
+
+		if(!$state || in_array($state->getStepName(), $this->service->getProperty('steps')))
+		{
+			if(!$state || !$user->hasAccess($roles, sprintf('workflow_%s', $model->getEntity()->getProviderName())))
+			{
+				Operation::disableIcon($event, array('value' => true));
+			}
+		}
+	}
+
+	/**
+	 * @param OperationEvent $event
+	 */
+	public function hideIcon(OperationEvent $event)
+	{
+		/** @var \BackendUser $user */
+		$user    = \BackendUser::getInstance();
+		$roles   = deserialize($this->service->getProperty('roles'), true);
+		$handler = $this->controller->getProcessHandler();
+		$model   = $this->getCurrentModel($event);
+		$state   = $handler->getCurrentState($model);
+
+		if($state && in_array($state->getStepName(), $this->service->getProperty('steps')))
+		{
+			if(!$state || !$user->hasAccess($roles, sprintf('workflow_%s', $model->getEntity()->getProviderName())))
+			{
+				$event->getSubject()->hide();
+			}
+		}
+	}
+
+
+	/**
+	 * @param OperationEvent $event
+	 * @return \Workflow\Model\ModelInterface
+	 */
+	protected function getCurrentModel(OperationEvent $event)
+	{
+		/** @var \DcGeneral\Data\ModelInterface $model */
+		$model = $event->getSubject()->getModel();
+
+		// only use current model if current table is the workflow table, otherwise use parent table
+		if($model && $model->getProviderName() == $this->controller->getWorkflow()->getTable())
+		{
+			return new Model($model, $this->controller);
+		}
+
+		return $this->controller->getModel();
+	}
 
 }

@@ -10,6 +10,7 @@ namespace Workflow\Controller;
 
 use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\ModelInterface;
+use Workflow\Entity\Workflow;
 use Workflow\Exception\WorkflowException;
 use Workflow\Handler\ProcessFactory;
 use Workflow\Handler\ProcessHandler;
@@ -24,11 +25,13 @@ class WorkflowFactory
 	{
 		global $container;
 
-		$driverManager   = $container['workflow.driver-manager'];
+		$driverManager   = $container['dcatools.driver-manager'];
 		$eventDispatcher = $container['event-dispatcher'];
 
 		$workflow = static::createWorkflow($entity->getProviderName(), $driverManager);
-		return new Controller($entity, $workflow, $eventDispatcher, $driverManager);
+		$handler  = static::createProcessHandler($workflow->getProcessName());
+
+		return new Controller($entity, $workflow, $handler, $eventDispatcher, $driverManager);
 	}
 
 
@@ -42,8 +45,8 @@ class WorkflowFactory
 	{
 		global $container;
 
-		/** @var \Workflow\Data\DriverManagerInterface $driverManager */
-		$driverManager = $container['workflow.driver-manager'];
+		/** @var \DcaTools\Data\DriverManagerInterface $driverManager */
+		$driverManager = $container['dcatools.driver-manager'];
 		$driver        = $driverManager->getDataProvider('tl_workflow');
 
 		$config = FilterBuilder::create()
@@ -57,9 +60,7 @@ class WorkflowFactory
 			throw new WorkflowException(sprintf('Undefined workflow for "%s"', $tableName));
 		}
 
-		/** @var $handlerManager */
-		$handler = static::createProcessHandler($model->getProperty('process'));
-		return new Workflow($model, $handler);
+		return new Workflow($model);
 	}
 
 

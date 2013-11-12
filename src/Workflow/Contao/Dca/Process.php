@@ -47,7 +47,7 @@ class Process
 		$template = new \BackendTemplate('be_workflow_steplist');
 		$template->records = $records;
 
-		$translator = Translator::instantiate('tl_workflow_step');
+		$translator = Translator::create('tl_workflow_step');
 
 		$template->stepLabel = $translator->property('label');
 		$template->rolesLabel = $translator->property('roles');

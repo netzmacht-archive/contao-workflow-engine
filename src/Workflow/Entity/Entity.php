@@ -2,7 +2,6 @@
 
 namespace Workflow\Entity;
 
-use DcGeneral\Data\DCGE;
 use DcGeneral\Data\ModelInterface;
 
 /**
@@ -15,7 +14,7 @@ class Entity implements ModelInterface
 {
 
 	/**
-	 * @var \DcGeneral\Data\ModelInterface
+	 * @var ModelInterface
 	 */
 	private $model;
 

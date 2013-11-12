@@ -14,6 +14,6 @@ $GLOBALS['container']['workflow.connector'] = $GLOBALS['container']->share(funct
  */
 $GLOBALS['container']['workflow.model-state-storage'] = $GLOBALS['container']->share(function($c) {
 	return new \Workflow\Model\ModelStorage(
-		$c['workflow.driver-manager']->getDataProvider('tl_workflow_state')
+		$c['dcatools.driver-manager']->getDataProvider('tl_workflow_state')
 	);
 });

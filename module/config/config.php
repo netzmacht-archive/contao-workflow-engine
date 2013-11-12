@@ -17,6 +17,7 @@ $GLOBALS['TL_CONFIG']['workflow_disabledTables']    = array
 	// system tables
 	'tl_user', 'tl_user_group', 'tl_member', 'tl_member_group',	'tl_log', 'tl_version', 'tl_undo', 'tl_cron',
 	'tl_repository_installs', 'tl_repository_instfiles', 'tl_search', 'tl_search_index', 'tl_session', 'tl_extension',
+	'tl_settings',
 );
 
 
@@ -24,7 +25,7 @@ $GLOBALS['TL_CONFIG']['workflow_disabledModules']   = array('settings', 'member'
 
 $GLOBALS['TL_CONFIG']['workflow_steps'] = array
 (
-	'created', 'changed', 'proposed', 'validated', 'published', 'unpublished', 'archived', 'deleted',
+	'created', 'changed', 'proposed', 'validated', 'published', 'unpublished', 'archived', 'deleted', 'aborted'
 );
 
 $GLOBALS['TL_CONFIG']['workflow_actions'] = array
@@ -41,6 +42,13 @@ $GLOBALS['TL_WORKFLOW_SERVICES']['notify']          = 'Workflow\Service\NotifySe
 $GLOBALS['TL_WORKFLOW_SERVICES']['parent']          = 'Workflow\Service\ParentService';
 $GLOBALS['TL_WORKFLOW_SERVICES']['restrict-access'] = 'Workflow\Service\RestrictAccessService';
 
+$GLOBALS['TL_WORKFLOW_OWNER_MAPPING'] = array
+(
+	'tl_news'            => 'author',
+	'tl_calendar_events' => 'author',
+	'tl_article'         => 'author',
+);
+
 
 /**
  * Backend module
@@ -52,13 +60,13 @@ array_insert($GLOBALS['BE_MOD'], 1, array
 (
 	'workflow' => array
 	(
-		'draft' => array
+		'workflow_draft' => array
 		(
 			'tables' => array('tl_workflow_draft'),
 
 		),
 
-		'workflow' => array
+		'workflow_settings' => array
 		(
 			'stylesheet' => 'system/modules/workflow/assets/css/style.css',
 			'tables' => array('tl_workflow', 'tl_workflow_process', 'tl_workflow_step', 'tl_workflow_service'),
@@ -66,5 +74,3 @@ array_insert($GLOBALS['BE_MOD'], 1, array
 		),
 	),
 ));
-
-

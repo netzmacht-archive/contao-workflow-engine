@@ -1,23 +1,20 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 08.11.13
- * Time: 11:36
- */
 
 namespace Workflow\Service;
 
-
 use DcaTools\Definition;
-use DcaTools\Model\FilterBuilder;
+use DcGeneral\Data\ModelInterface;
+use Workflow\Controller\Controller;
 use Workflow\Controller\WorkflowFactory;
 use Workflow\Exception\WorkflowException;
-use Workflow\Handler\ProcessHandler;
-use Workflow\Model\Model;
+
 
 class ParentService extends AbstractService
 {
+	protected static $parentController;
+
+	protected static $instance;
+
 	protected static $config = array
 	(
 		'identifier' => 'parent',
@@ -25,15 +22,31 @@ class ParentService extends AbstractService
 		'properties' => array(),
 	);
 
+	public function __construct(ModelInterface $service, Controller $controller)
+	{
+		parent::__construct($service, $controller);
+
+		static::$instance = $this;
+	}
+
+
+	public static function getInstance()
+	{
+		return static::$instance;
+	}
+
+
 	/**
 	 * @inheritdoc
 	 */
-	function initialize()
+	public function initialize()
 	{
 		$table = $this->controller->getWorkflow()->getTable();
 
+		$definition = Definition::getDataContainer($table);
+
 		$parentId = $this->controller->getModel()->getEntity()->getProperty('pid');
-		$parentTable = Definition::getDataContainer($table)->get('config/ptable');
+		$parentTable = $definition->get('config/ptable');
 		$driver = $this->controller->getDriverManager()->getDataProvider($parentTable);
 
 		$config = $driver->getEmptyConfig();
@@ -48,5 +61,32 @@ class ParentService extends AbstractService
 
 		$controller = WorkflowFactory::createController($entity);
 		$controller->initialize();
+
+		static::$parentController = $controller;
+
+		$class = get_class($this);
+		$definition->registerCallback('ondelete', array($class, 'callbackRouter'));
+		$definition->registerCallback('onsubmit', array($class, 'callbackRouter'));
+		$definition->registerCallback('oncreate', array($class, 'callbackRouter'));
+		//$definition->registerCallback('oncut', array($class, 'callbackRouter'));
 	}
+
+
+	/**
+	 * @return \Workflow\Controller\Controller
+	 */
+	public static function getParentController()
+	{
+		return static::$parentController;
+	}
+
+
+	/**
+	 *
+	 */
+	public function callbackRouter()
+	{
+		static::getParentController()->reachNextState('change');
+	}
+
 }

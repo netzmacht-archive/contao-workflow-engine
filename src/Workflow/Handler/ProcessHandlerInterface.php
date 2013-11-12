@@ -14,9 +14,9 @@ interface ProcessHandlerInterface
 {
 
 	/**
-	 * @return string
+	 * @return \Workflow\Flow\Process
 	 */
-	public function getProcessName();
+	public function getProcess();
 
 	/**
      * Start the current process for the given model.

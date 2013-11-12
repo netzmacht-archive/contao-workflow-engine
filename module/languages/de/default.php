@@ -9,16 +9,8 @@ $GLOBALS['TL_LANG']['workflow']['services']['notify'][1] = 'Benachrichtigungen �
 $GLOBALS['TL_LANG']['workflow']['services']['storage'][0] = 'Datensätze speichern';
 $GLOBALS['TL_LANG']['workflow']['services']['storage'][1] = 'Speichert den jeweiligen Datensatz des Workflow-Models.';
 
-/**
- * routines
- */
-$GLOBALS['TL_LANG']['workflow']['routines']['container'][0] = 'Container';
-$GLOBALS['TL_LANG']['workflow']['routines']['container'][1] = 'Routine für Inhalte mit Kinder-Elementen (Inhaltselemente). Die Kinderelemente benötigen ebenfalls einen zugewiesenen Workflow-Prozess.';
-
-$GLOBALS['TL_LANG']['workflow']['routines']['simple'][0]  = 'Vereinfacht';
-$GLOBALS['TL_LANG']['workflow']['routines']['simple'][1]  = 'Eine vereinfachte Routine, die zwischen "erstellt" und "gelöscht" unterscheidet.';
-
-
+$GLOBALS['TL_LANG']['workflow']['services']['parent'][0] = 'Workflow des Eltern-Datensatzes';
+$GLOBALS['TL_LANG']['workflow']['services']['parent'][1] = 'Der Workflow des Elterndatensatzes wird verwendet. Dies ist beispielsweise für Inhaltselemente sinnvoll.';
 
 
 
@@ -48,6 +40,9 @@ $GLOBALS['TL_LANG']['workflow']['steps']['deleted'][1] = 'Inhalt wurde für gel�
 
 $GLOBALS['TL_LANG']['workflow']['steps']['archived'][0] = 'Archiviert';
 $GLOBALS['TL_LANG']['workflow']['steps']['archived'][1] = 'Inhalt wurde archiviert';
+
+$GLOBALS['TL_LANG']['workflow']['steps']['aborted'][0] = 'Verworfen';
+$GLOBALS['TL_LANG']['workflow']['steps']['aborted'][1] = 'Inhalt wurde gelöscht bevor er veröffentlicht wurde.';
 
 
 /**

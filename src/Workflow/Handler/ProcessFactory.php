@@ -45,8 +45,8 @@ class ProcessFactory
 	 */
 	public static function createById($id)
 	{
-		/** @var \Workflow\Data\DriverManager $driverManager */
-		$driverManager = $GLOBALS['container']['workflow.driver-manager'];
+		/** @var \DcaTools\Data\DriverManager $driverManager */
+		$driverManager = $GLOBALS['container']['dcatools.driver-manager'];
 		$driver = $driverManager->getDataProvider('tl_workflow_process');
 
 		$config = $driver->getEmptyConfig();
@@ -71,8 +71,8 @@ class ProcessFactory
 	 */
 	public static function createByName($name)
 	{
-		/** @var \Workflow\Data\DriverManager $driverManager */
-		$driverManager = $GLOBALS['container']['workflow.driver-manager'];
+		/** @var \DcaTools\Data\DriverManager $driverManager */
+		$driverManager = $GLOBALS['container']['dcatools.driver-manager'];
 		$driver = $driverManager->getDataProvider('tl_workflow_process');
 
 		$config = FilterBuilder::create()->addEquals('name', $name)->getConfig($driver);
@@ -96,8 +96,8 @@ class ProcessFactory
 	 */
 	public static function createFromModel(ModelInterface $model)
 	{
-		/** @var \Workflow\Data\DriverManager $driverManager */
-		$driverManager = $GLOBALS['container']['workflow.driver-manager'];
+		/** @var \DcaTools\Data\DriverManager $driverManager */
+		$driverManager = $GLOBALS['container']['dcatools.driver-manager'];
 		$driver = $driverManager->getDataProvider('tl_workflow_step');
 
 		$config = FilterBuilder::create()->addEquals('pid', $model->getId())->getConfig($driver);
@@ -183,7 +183,7 @@ class ProcessFactory
 				throw new \InvalidArgumentException(sprintf('Unknown type "%s", please use "step" or "process"', $state['type']));
 			}
 
-			$step->addNextState($state['name'], $state['type'], $target);
+			$step->addNextState($state['state'], $state['type'], $target);
 		}
 
 		return $step;

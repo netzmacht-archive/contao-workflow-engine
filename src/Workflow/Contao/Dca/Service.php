@@ -1,39 +1,51 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 04.11.13
- * Time: 14:04
- */
 
 namespace Workflow\Contao\Dca;
-
 
 use DcaTools\Definition;
 use DcaTools\Model\FilterBuilder;
 use DcaTools\Translator;
-use DcGeneral\Data\DCGE;
 
+
+/**
+ * Class Service provides callbacks used by tl_workflow_service
+ *
+ * @package Workflow\Contao\Dca
+ */
 class Service extends Generic
 {
-	protected $model;
 
 	/**
-	 * @var \Workflow\Service\ConfigInterface
+	 * @var \DcGeneral\Data\ModelInterface
+	 */
+	protected $entity;
+
+
+	/**
+	 * @var \Workflow\Service\Config
 	 */
 	protected $config;
 
 
+	/**
+	 * @var \DcGeneral\Data\ModelInterface
+	 */
 	protected $workflow;
 
-	protected $tableIndex = 0;
 
-	protected $tableValue;
-
+	/**
+	 * Reference to the used DC driver
+	 *
+	 * @var
+	 */
 	protected $dc;
 
 
-	public function initialize($dc)
+	/**
+	 * Initialize workflow service callbacks
+	 * @param $dc
+	 */
+	public function callbackOnLoad($dc)
 	{
 		global $container;
 
@@ -44,22 +56,28 @@ class Service extends Generic
 
 		$this->dc = $dc;
 
-		/** @var \Workflow\Data\DriverManagerInterface $manager */
-		$manager = $container['workflow.driver-manager'];
-		$driver = $manager->getDataProvider($dc->table);
+		/** @var \DcaTools\Data\DriverManagerInterface $manager */
+		$manager = $container['dcatools.driver-manager'];
+		$driver  = $manager->getDataProvider($dc->table);
+		$config  = FilterBuilder::create()->addEquals('id', $dc->id)->getConfig($driver);
+		
+		$this->entity = $driver->fetch($config);
 
-		$config = FilterBuilder::create()->addEquals('id', $dc->id)->getConfig($driver);
-		$this->model = $driver->fetch($config);
-
-		if($this->model && $this->model->getProperty('service'))
+		if(!$this->entity)
 		{
-			/** @var \Workflow\Service\ServiceInterface $serviceClass */
-			$serviceClass = $GLOBALS['TL_WORKFLOW_SERVICES'][$this->model->getProperty('service')];
+			return;
+		}
 
+		if($this->entity->getProperty('service'))
+		{
+
+			/** @var \Workflow\Service\ServiceInterface $serviceClass */
+			$serviceClass = $GLOBALS['TL_WORKFLOW_SERVICES'][$this->entity->getProperty('service')];
+
+			// initialize service configuration
 			if(class_exists($serviceClass))
 			{
 				$this->config = $serviceClass::getConfig();
-
 				$palette = Definition::getPalette($dc->table);
 
 				foreach($this->config->getConfigProperties() as $legend => $properties)
@@ -72,45 +90,64 @@ class Service extends Generic
 			}
 		}
 
-
+		// load workflow class
 		$driver = $manager->getDataProvider('tl_workflow');
-		$model  = $driver->getEmptyModel();
 
+		$config = $driver->getEmptyConfig();
+		$config->setId($this->entity->getProperty('pid'));
 
-		$result = \Database::getInstance()
-			->prepare('SELECT * FROM tl_workflow where id=(SELECT pid FROM tl_workflow_service WHERE id=?)')
-			->limit(1)
-			->execute($dc->id);
-
-		$model->setPropertiesAsArray($result->row());
-		$model->setId($result->id);
-
-		$this->workflow = $model;
+		$this->workflow = $driver->fetch($config);
 	}
 
-	public function getUsers()
+
+	/**
+	 * Create default value for restrictions tables
+	 *
+	 * @param string $tableName
+	 * @param $insertID
+	 * @param $set
+	 * @param $dc
+	 */
+	public function callbackOnCreate($tableName, $insertID, $set, $dc)
 	{
 		global $container;
 
-		/** @var \Workflow\Data\DriverManagerInterface $manager */
-		$manager = $container['workflow.driver-manager'];
-		$driver = $manager->getDataProvider('tl_user');
+		/** @var \DcaTools\Data\DriverManagerInterface $manager */
+		$manager = $container['dcatools.driver-manager'];
+		$driver  = $manager->getDataProvider('tl_workflow');
 
 		$config = $driver->getEmptyConfig();
-		$config->setFields(array('id', 'username', 'name'));
-		$config->setSorting(array('name' => DCGE::MODEL_SORTING_ASC));
+		$config->setFields(array('forTable'));
+		$config->setId($set['pid']);
 
-		$users = array();
+		$workflow = $driver->fetch($config);
 
-		/** @var \DcGeneral\Data\ModelInterface $user */
-		foreach($driver->fetchAll($config) as $user)
+		$tables = array($workflow->getProperty('forTable'));
+		$children = Definition::getDataContainer($workflow->getProperty('forTable'))->get('config/ctable') ?: array();
+
+		$tables =  array_merge($tables, $children);
+		$default = array();
+
+		foreach($tables as $table)
 		{
-			$users[$user->getId()] = sprintf('%s [%s]', $user->getProperty('name'), $user->getProperty('username'));
+			$default[]['table'] = $table;
 		}
 
-		return $users;
+		$driver = $manager->getDataProvider($dc->table);
+		$model  = $driver->getEmptyModel();
+
+		$model->setId($insertID);
+		$model->setProperty('restrictions', $default);
+
+		$driver->save($model);
 	}
 
+
+	/**
+	 * Get all available services
+	 *
+	 * @return array
+	 */
 	public function getServices()
 	{
 		$services = array();
@@ -120,22 +157,30 @@ class Service extends Generic
 			/** @var \Workflow\Service\ServiceInterface $serviceClass */
 			$configClass = $serviceClass::getConfig();
 
-			$services[$name] = sprintf('%s (%s)', $configClass->getName(), $configClass->getVersion());
+			$services[$name] = sprintf('%s (%s)', $configClass->getName(), $configClass->getIdentifier());
 		}
 
 		return $services;
 	}
 
 
+	/**
+	 * Get events which the service supports
+	 *
+	 * @return array
+	 */
 	public function getEvents()
 	{
-		$serviceConfig = $this->config;
-
-		return $serviceConfig->getEvents();
+		return $this->config->getEvents();
 	}
 
 
-	public function getRestrictTables($dc)
+	/**
+	 * Get tables for restrictions
+	 *
+	 * @return array
+	 */
+	public function getRestrictTables()
 	{
 		$tables = array($this->workflow->getProperty('forTable'));
 		$children = Definition::getDataContainer($this->workflow->getProperty('forTable'))->get('config/ctable') ?: array();
@@ -144,15 +189,20 @@ class Service extends Generic
 	}
 
 
+	/**
+	 * Get all operations for restriction tables
+	 *
+	 * @return array
+	 */
 	public function getRestrictOperations()
 	{
 		$operations = array();
-		$tables = deserialize($this->dc->activeRecord->restrict_tables, true);
+		$tables = $this->getRestrictTables($this->dc);
 
 		foreach($tables as $table)
 		{
 			$definition = Definition::getDataContainer($table);
-			$translator = Translator::instantiate($table);
+			$translator = Translator::create($table);
 
 			foreach($definition->getOperationNames('global') as $operation)
 			{
@@ -167,4 +217,5 @@ class Service extends Generic
 
 		return $operations;
 	}
-} 
+
+}

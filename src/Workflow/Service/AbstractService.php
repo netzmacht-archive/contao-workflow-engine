@@ -10,9 +10,7 @@ namespace Workflow\Service;
 
 use DcaTools\Translator;
 use DcGeneral\Data\ModelInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Workflow\Controller\Controller;
-use Workflow\Handler\Environment;
 
 abstract class AbstractService implements ServiceInterface
 {
@@ -62,7 +60,7 @@ abstract class AbstractService implements ServiceInterface
 	protected function getModelProperties(\Workflow\Model\ModelInterface $model)
 	{
 		$entity = $model->getEntity();
-		$translator = Translator::instantiate($entity->getProviderName());
+		$translator = Translator::create($entity->getProviderName());
 		$properties = array();
 
 		foreach($this->service->getProperty('model_properties') as $property)

@@ -67,3 +67,33 @@ $GLOBALS['TL_LANG']['tl_workflow_service']['storage_mode']['exclude'] = 'Ausgew�
 
 $GLOBALS['TL_LANG']['tl_workflow_service']['storage_properties'][0] = 'Spaltenauswahl';
 $GLOBALS['TL_LANG']['tl_workflow_service']['storage_properties'][1] = 'Wählen Sie die Spalten aus, die je nach Einstellung ein- oder ausgeschlossen werden.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions'][0] = 'Tabelle beschränken';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions'][1] = 'Sie können den Bearbeitungsmöglichkeiten der Tabelle beschränken.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_table'][0] = 'Tabelle';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_table'][1] = 'Tabelle beschränken.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_closed'][0] = 'Anlegen verbieten';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_closed'][1] = 'Anlegen neuer Datensätze verbieten.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_notEditable'][0] = 'Bearbeiten verbieten';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_notEditable'][1] = 'Bearbeiten bestehender Datensätze verbieten.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_notDeletable'][0] = 'Löschen verbieten';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_notDeletable'][1] = 'Löschhen bestehender Datensätze verbieten.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_notSortable'][0] = 'Sortieren verbieten';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_notSortable'][1] = 'Sortierung bestehender Datensätze verbieten.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_operations'][0] = 'Schaltflächen beschränken';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_operations'][1] = 'Deaktivieren Sie vorhandene Schaltflächen.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_operation'][0] = 'Schaltfläche';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_operation'][1] = 'Sie können den Bearbeitungsmöglichkeiten der Tabelle beschränken.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_mode'][0] = 'Modus';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_mode'][1] = 'Deaktivieren oder ausblenden.';
+
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_mode']['hide'] = 'ausblenden';
+$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_mode']['disable'] = 'deaktivieren';

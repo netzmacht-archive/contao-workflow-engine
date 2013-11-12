@@ -69,11 +69,11 @@ class ProcessHandler implements ProcessHandlerInterface
 
 
 	/**
-	 * @return string
+	 * @return \Workflow\Flow\Process
 	 */
-	public function getProcessName()
+	public function getProcess()
 	{
-		return $this->process->getName();
+		return $this->process;
 	}
 
 

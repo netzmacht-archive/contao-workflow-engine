@@ -167,8 +167,8 @@ class Connector
 	 */
 	protected function initializeController()
 	{
-		/** @var \Workflow\Data\DriverManager $manager */
-		$manager = $GLOBALS['container']['workflow.driver-manager'];
+		/** @var \DcaTools\Data\DriverManager $manager */
+		$manager = $GLOBALS['container']['dcatools.driver-manager'];
 		$driver  = $manager->getDataProvider($this->definition->getName());
 		$config  = $driver->getEmptyConfig();
 
@@ -213,7 +213,7 @@ class Connector
 		if($dc instanceof DC_General)
 		{
 			// no need for own driver manager, use Dc_General
-			$GLOBALS['container']['workflow.driver-manager'] = $GLOBALS['container']->share(function() use($dc) {
+			$GLOBALS['container']['dcatools.driver-manager'] = $GLOBALS['container']->share(function() use($dc) {
 				return $dc;
 			});
 

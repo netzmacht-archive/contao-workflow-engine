@@ -9,7 +9,12 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 		'ptable'            => 'tl_workflow',
 		'onload_callback' => array
 		(
-			array('Workflow\Contao\Dca\Service', 'initialize'),
+			array('Workflow\Contao\Dca\Service', 'callbackOnLoad'),
+		),
+
+		'oncreate_callback' => array
+		(
+			array('Workflow\Contao\Dca\Service', 'callbackOnCreate'),
 		),
 
 		'sql' => array
@@ -99,6 +104,11 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 		'pid' => array
 		(
 			'sql'           => "int(10) unsigned NOT NULL default '0'"
+		),
+
+		'sorting' => array
+		(
+			'sql'                     => "int(10) unsigned NOT NULL default '0'"
 		),
 
 		'tstamp' => array
@@ -263,6 +273,56 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			'sql'               => "mediumblob NULL",
 		),
 
+		'restrictions' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions'],
+			'inputType'         => 'multiColumnWizard',
+			'exclude'           => true,
+			'eval'              => array
+			(
+				'tl_class'      => 'clr',
+				'buttons'       => array('copy' => false, 'up' => false, 'down' => false, 'delete' => false),
+				'columnFields'  => array
+				(
+					'table' => array
+					(
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_table'],
+						'inputType'         => 'text',
+						'eval'              => array('style' => 'width: 130px', 'readonly' => true),
+					),
+
+					'closed' => array
+					(
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_closed'],
+						'inputType'         => 'checkbox',
+						'eval'              => array('style' => 'width: 120px'),
+					),
+
+					'notEditable' => array
+					(
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_notEditable'],
+						'inputType'         => 'checkbox',
+						'eval'              => array('style' => 'width: 120px'),
+					),
+
+					'notDeletable' => array
+					(
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_notDeletable'],
+						'inputType'         => 'checkbox',
+						'eval'              => array('style' => 'width: 120px'),
+					),
+
+					'notSortable' => array
+					(
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrictions_notSortable'],
+						'inputType'         => 'checkbox',
+						'eval'              => array('style' => 'width: 120px'),
+					),
+				),
+			),
+			'sql'               => "mediumblob NULL",
+		),
+
 		'restrict_operations' => array
 		(
 			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_operations'],
@@ -284,8 +344,9 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 
 					'mode'      => array
 					(
-						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_operation'],
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_mode'],
 						'inputType'         => 'select',
+						'reference'         => &$GLOBALS['TL_LANG']['tl_workflow_service']['restrict_mode'],
 						'options'           => array('disable', 'hide'),
 						'eval'              => array('style' => 'width: 200px'),
 					),

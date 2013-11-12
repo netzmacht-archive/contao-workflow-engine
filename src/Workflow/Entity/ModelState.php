@@ -4,16 +4,15 @@ namespace Workflow\Entity;
 
 use DcGeneral\Data\ModelInterface;
 
-
 class ModelState extends Entity
 {
 
 	/**
 	 * Construct.
 	 */
-	public function __construct(ModelInterface $model)
+	public function __construct(ModelInterface $entity)
 	{
-		parent::__construct($model);
+		parent::__construct($entity);
 
 		$this->setProperty('createdAt', time());
 		$this->setProperty('next', array());

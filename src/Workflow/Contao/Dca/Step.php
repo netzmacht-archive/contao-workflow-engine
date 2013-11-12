@@ -14,6 +14,7 @@ class Step
 {
 	protected $process;
 
+
 	public function saveStart($dc)
 	{
 		// only one field can be defined as start
@@ -29,7 +30,7 @@ class Step
 
 	public function generateChildRecord($row)
 	{
-		$translator = Translator::instantiate('tl_workflow_step');
+		$translator = Translator::create('tl_workflow_step');
 		$return = $translator->value('name', $row['name']);
 
 		if($row['start'] || $row['end'])
@@ -61,31 +62,18 @@ class Step
 
 	public function getSteps($dc)
 	{
-		$this->loadProcess($dc->activeRecord->pid);
-
-		if(isset($GLOBALS['TL_WORKFLOW']['routines'][$this->process->routine]))
-		{
-			return $GLOBALS['TL_WORKFLOW']['routines'][$this->process->routine]['steps'];
-		}
-
-		return array();
+		return $GLOBALS['TL_CONFIG']['workflow_steps'];
 	}
 
 	public function getStates($dc)
 	{
-		$this->loadProcess($dc->activeRecord->pid);
-
-		if(isset($GLOBALS['TL_WORKFLOW']['routines'][$this->process->routine]))
-		{
-			return $GLOBALS['TL_WORKFLOW']['routines'][$this->process->routine]['states'];
-		}
-
-		return array();
+		return $GLOBALS['TL_CONFIG']['workflow_actions'];
 	}
 
 
-	public function getRoles()
+	public function getRoles($dc)
 	{
+		$this->loadProcess($dc->activeRecord->pid);
 		return $this->process->roles;
 	}
 

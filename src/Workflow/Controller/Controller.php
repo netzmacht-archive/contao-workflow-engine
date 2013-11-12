@@ -9,12 +9,16 @@
 namespace Workflow\Controller;
 
 
+use DcaTools\Model\FilterBuilder;
 use DcGeneral\Data\DCGE;
 use DcGeneral\Data\ModelInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Workflow\Entity\Workflow;
 use Workflow\Event\InitialisationEvent;
 use Workflow\Handler\ProcessHandler;
+use Workflow\Handler\ProcessHandlerInterface;
 use Workflow\Model\Model;
+use Workflow\Service\ServiceFactory;
 
 
 class Controller
@@ -31,7 +35,7 @@ class Controller
 	protected $dispatcher;
 
 	/**
-	 * @var \Workflow\Data\DriverManagerInterface
+	 * @var \DcaTools\Data\DriverManagerInterface
 	 */
 	protected $driverManager;
 
@@ -40,16 +44,24 @@ class Controller
 	 */
 	protected $workflow;
 
+	/**
+	 * @var \Workflow\Handler\ProcessHandlerInterface
+	 */
+	protected $handler;
+
+
 
 	/**
 	 * @param ModelInterface $model
 	 * @param Workflow $workflow
+	 * @param ProcessHandlerInterface $handler
 	 * @param EventDispatcher $dispatcher
-	 * @param \Workflow\Data\DriverManagerInterface $driverManager
+	 * @param \DcaTools\Data\DriverManagerInterface $driverManager
 	 */
-	public function __construct(ModelInterface $model, Workflow $workflow, EventDispatcher $dispatcher, $driverManager)
+	public function __construct(ModelInterface $model, Workflow $workflow, ProcessHandlerInterface $handler, EventDispatcher $dispatcher, $driverManager)
 	{
 		$this->model = new Model($model, $this);
+		$this->handler = $handler;
 		$this->workflow = $workflow;
 		$this->dispatcher = $dispatcher;
 		$this->driverManager = $driverManager;
@@ -61,8 +73,18 @@ class Controller
 	 */
 	public function initialize()
 	{
-		$this->workflow->initialize($this);
+		$this->initializeServices();
 
+		$state = $this->initializeModel();
+		$event = new InitialisationEvent($this->model, $state);
+		$eventName = sprintf('workflow.%s.initialized', $state->getProcessName());
+
+		$this->dispatcher->dispatch($eventName, $event);
+	}
+
+
+	protected function initializeModel()
+	{
 		$state = $this->getCurrentState();
 
 		if(!$state)
@@ -70,10 +92,31 @@ class Controller
 			$state = $this->getProcessHandler()->start($this->model);
 		}
 
-		$event = new InitialisationEvent($this->model, $state);
-		$eventName = sprintf('workflow.%s.initialized', $state->getProcessName());
+		return $state;
+	}
 
-		$this->dispatcher->dispatch($eventName, $event);
+
+	protected function initializeServices()
+	{
+		$coreService = ServiceFactory::create('core', $this);
+		$coreService->initialize();
+
+		$this->workflow->addService($coreService);
+
+		$driver = $this->getDriverManager()->getDataProvider('tl_workflow_service');
+		$config = FilterBuilder::create()
+			->addEquals('pid', $this->workflow->getId())
+			->getConfig($driver);
+
+		$config->setSorting(array('sorting' => 'asc'));
+
+		foreach($driver->fetchAll($config) as $entity)
+		{
+			$service = ServiceFactory::create($entity, $this);
+			$service->initialize();
+
+			$this->workflow->addService($service);
+		}
 	}
 
 
@@ -84,7 +127,7 @@ class Controller
 	 */
 	public function reachNextState($stateName)
 	{
-		$state = $this->workflow->getProcessHandler()->reachNextState($this->model, $stateName);
+		$state = $this->getProcessHandler()->reachNextState($this->model, $stateName);
 
 		if($state->getSuccessful())
 		{
@@ -124,7 +167,17 @@ class Controller
 
 
 	/**
-	 * @return Workflow
+	 * @param ModelInterface $model
+	 */
+	public function setModel(ModelInterface $model)
+	{
+		$this->model = $model;
+		$this->initializeModel();
+	}
+
+
+	/**
+	 * @return \Workflow\Entity\Workflow
 	 */
 	public function getWorkflow()
 	{
@@ -133,7 +186,7 @@ class Controller
 
 
 	/**
-	 * @return \Workflow\Data\DriverManagerInterface
+	 * @return \DcaTools\Data\DriverManagerInterface
 	 */
 	public function getDriverManager()
 	{
@@ -146,7 +199,7 @@ class Controller
 	 */
 	public function getProcessHandler()
 	{
-		return $this->workflow->getProcessHandler();
+		return $this->handler;
 	}
 
 

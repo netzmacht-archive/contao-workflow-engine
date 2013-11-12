@@ -46,7 +46,8 @@ class CoreService extends AbstractService
 		/** @var \BackendUser $user */
 		$user = \BackendUser::getInstance();
 		$roles = $event->getStep()->getRoles();
-		$field = sprintf('workflow_%s_%s', \Input::get('do'), $event->getModel()->getEntity()->getProviderName());
+		$tableName = $event->getModel()->getEntity()->getProviderName();
+		$field = sprintf('workflow_%s_%s', \Input::get('do'), $tableName);
 
 		if(empty($roles) || $user->isAdmin || $user->hasAccess($roles, $field))
 		{
@@ -54,6 +55,15 @@ class CoreService extends AbstractService
 		}
 		else
 		{
+			if(in_array('owner', $roles) && isset($GLOBALS['TL_WORKFLOW_OWNER_MAPPING'][$tableName]))
+			{
+				if($user->id == $event->getModel()->getEntity()->getProperty($GLOBALS['TL_WORKFLOW_OWNER_MAPPING'][$tableName]))
+				{
+					$event->grantAccess(true);
+					return;
+				}
+			}
+
 			$event->grantAccess(false);
 		}
 	}
