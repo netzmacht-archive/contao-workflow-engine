@@ -2,7 +2,7 @@
 
 namespace Workflow\Service;
 
-use DcGeneral\Data\ModelInterface;
+use DcGeneral\Data\ModelInterface as EntityInterface;
 use Workflow\Controller\Controller;
 
 
@@ -20,10 +20,10 @@ interface ServiceInterface
 	/**
 	 * Construct
 	 *
-	 * @param ModelInterface $service
+	 * @param EntityInterface $service
 	 * @param Controller $controller
 	 */
-	public function __construct(ModelInterface $service, Controller $controller);
+	public function __construct(EntityInterface $service, Controller $controller);
 
 	/**
 	 * The initialize is used for registering all listeners depending

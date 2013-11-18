@@ -2,20 +2,29 @@
 
 namespace Workflow\Service;
 
+use DcaTools\Data\ModelFactory;
 use DcaTools\Definition;
-use DcGeneral\Data\ModelInterface;
+use DcGeneral\Data\ModelInterface as EntityInterface;
+use Workflow\Contao\Connector\AbstractConnector;
 use Workflow\Controller\Controller;
-use Workflow\Controller\ControllerFactory;
 use Workflow\Exception\WorkflowException;
 
 
+/**
+ * Class ParentService
+ *
+ * Parent service triggers a next state of the parent when entity has changed
+ *
+ * @package Workflow\Service
+ * @author David Molineus <molineus@netzmacht.de>
+ */
 class ParentService extends AbstractService
 {
 
 	/**
-	 * @var Controller
+	 * @var string
 	 */
-	protected static $parentController;
+	protected $parent;
 
 
 	/**
@@ -26,21 +35,38 @@ class ParentService extends AbstractService
 
 
 	/**
+	 * Track changes of element
+	 *
+	 * @var bool
+	 */
+	protected $changed = false;
+
+
+	/**
+	 * @var EntityInterface
+	 */
+	protected $entity;
+
+
+	/**
 	 * @var array
 	 */
 	protected static $config = array
 	(
-		'identifier' => 'parent',
-		'version'    => '1.0.0',
-		'properties' => array(),
+		'name'      => 'parent',
+		'drivers'   => array('Table'),
+		'config'    => array
+		(
+			'scope' => array('state', 'steps'),
+		),
 	);
 
 
 	/**
-	 * @param ModelInterface $service
+	 * @param EntityInterface $service
 	 * @param Controller $controller
 	 */
-	public function __construct(ModelInterface $service, Controller $controller)
+	public function __construct(EntityInterface $service, Controller $controller)
 	{
 		parent::__construct($service, $controller);
 
@@ -64,52 +90,109 @@ class ParentService extends AbstractService
 	 */
 	public function initialize()
 	{
-		$table = $this->controller->getWorkflow()->getTable();
-
+		$table      = $this->service->getProperty('tableName');
 		$definition = Definition::getDataContainer($table);
+		$config     = $this->controller->getCurrentWorkflow()->getConfig($table);
 
-		$parentId = $this->controller->getModel()->getEntity()->getProperty('pid');
-		$parentTable = $definition->get('config/ptable');
-		$driver = $this->controller->getDriverManager()->getDataProvider($parentTable);
-
-		$config = $driver->getEmptyConfig();
-		$config->setId($parentId);
-
-		$entity = $driver->fetch($config);
-
-		if(!$entity)
+		if($config['parent'])
 		{
-			throw new WorkflowException('Huh, could not load parent');
+			$class = get_class($this);
+			$this->parent = $config['parent'];
+
+			foreach($definition->getProperties() as $property)
+			{
+				if($property->isEditable())
+				{
+					$property->registerCallback('save', array($class, 'callbackSave'));
+				}
+			}
+
+			$definition->registerCallback('ondelete', array($class, 'callbackRouter'));
+			$definition->registerCallback('onsubmit', array($class, 'callbackOnSubmit'));
+			$definition->registerCallback('oncreate', array($class, 'callbackRouter'));
+
+			// TODO: which callbacks do we need?
+		}
+	}
+
+
+	/**
+	 * Route to parent next state
+	 *
+	 * @param $dc
+	 */
+	public function callbackRouter($dc)
+	{
+		$entity = $this->getEntity($dc);
+
+		if($this->isAssigned($entity))
+		{
+			$workflow = $this->controller->getCurrentWorkflow();
+			$parent   = $workflow->getParent($entity);
+
+			if($parent)
+			{
+				$this->controller->initialize($parent);
+
+				try {
+					$this->controller->reachNextState($this->service->getProperty('state'));
+				}
+				catch(WorkflowException $e)
+				{
+					AbstractConnector::error($e->getMessage(), false);
+				}
+			}
+		}
+	}
+
+
+	/**
+	 * Rout to parent next state if changes were tracked
+	 *
+	 * @param $dc
+	 */
+	public function callbackOnSubmit($dc)
+	{
+		if($this->changed)
+		{
+			$this->callbackRouter($dc);
+		}
+	}
+
+
+	/**
+	 * Detect changes
+	 *
+	 * @param $value
+	 * @param $dc
+	 */
+	public function callbackSave($value, $dc)
+	{
+		if(!$this->changed)
+		{
+			// TODO: check which dc is used
+			$entity = $this->getEntity($dc);
+			$this->changed = ($value != $entity->getProperty($dc->field));
 		}
 
-		$controller = ControllerFactory::create($entity);
-		$controller->initialize();
-
-		static::$parentController = $controller;
-
-		$class = get_class($this);
-		$definition->registerCallback('ondelete', array($class, 'callbackRouter'));
-		$definition->registerCallback('onsubmit', array($class, 'callbackRouter'));
-		$definition->registerCallback('oncreate', array($class, 'callbackRouter'));
-		//$definition->registerCallback('oncut', array($class, 'callbackRouter'));
+		return $value;
 	}
 
 
 	/**
-	 * @return \Workflow\Controller\Controller
+	 * Initialize the entity
+	 *
+	 * @param $dc
+	 * @return EntityInterface
 	 */
-	public static function getParentController()
+	protected function getEntity($dc)
 	{
-		return static::$parentController;
-	}
+		if(!$this->entity)
+		{
+			$this->entity = ModelFactory::byDc($dc);
+		}
 
-
-	/**
-	 * Route to parent events
-	 */
-	public function callbackRouter()
-	{
-		static::getParentController()->reachNextState('change');
+		return $this->entity;
 	}
 
 }

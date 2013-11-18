@@ -3,7 +3,7 @@
 namespace Workflow\Service;
 
 use DcaTools\Translator;
-use DcGeneral\Data\ModelInterface;
+use DcGeneral\Data\ModelInterface as EntityInterface;
 use Workflow\Controller\Controller;
 
 
@@ -28,16 +28,16 @@ abstract class AbstractService implements ServiceInterface
 
 
 	/**
-	 * @var array|Config
+	 * @var array
 	 */
 	protected static $config;
 
 
 	/**
-	 * @param ModelInterface $service
+	 * @param EntityInterface $service
 	 * @param Controller $controller
 	 */
-	public function __construct(ModelInterface $service, Controller $controller)
+	public function __construct(EntityInterface $service, Controller $controller)
 	{
 		$this->service = $service;
 		$this->controller = $controller;
@@ -85,12 +85,18 @@ abstract class AbstractService implements ServiceInterface
 	 */
 	public static function getConfig()
 	{
-		if(!static::$config instanceof Config)
+		return static::$config;
+	}
+
+
+	protected function isAssigned(EntityInterface $entity)
+	{
+		if($entity->getProviderName() == $this->service->getProperty('tableName'))
 		{
-			static::$config = new Config(static::$config);
+			return $this->controller->getCurrentWorkflow()->isAssigned($entity);
 		}
 
-		return static::$config;
+		return false;
 	}
 
 }
