@@ -9,7 +9,7 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 		'ptable'            => 'tl_workflow',
 		'onload_callback' => array
 		(
-			array('Workflow\Contao\Dca\Service', 'callbackOnLoad'),
+			array('Workflow\Contao\Dca\Service', 'initialize'),
 		),
 
 		'oncreate_callback' => array
@@ -31,12 +31,12 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 	(
 		'sorting' => array
 		(
-			'mode' => 2,
+			'mode' => 4,
 			'flag' => 1,
-			'headerFields'  => array('name', 'description'),
+			'headerFields'  => array('title', 'forModule', 'forTable', 'process', 'active'),
 			'panelLayout'   => 'sort,filter;search,limit',
 			'fields' => array('name'),
-			//'child_record_callback' => array('Workflow\Contao\Dca\Service', 'generateChildRecord'),
+			'child_record_callback' => array('Workflow\Contao\Dca\Service', 'generateChildRecord'),
 		),
 
 		'label' => array
@@ -88,7 +88,7 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 	(
 		'default' => array
 		(
-			'name'   => array('name', 'service', 'description'),
+			'name'   => array('name', 'description', 'service', 'tableName'),
 			'scope'  => array(),
 			'config' => array(),
 		),
@@ -167,6 +167,46 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			'sql'               => "varchar(64) NOT NULL default ''",
 		),
 
+		'tableName' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['tableName'],
+			'inputType'         => 'select',
+			'exclude'       => true,
+			'sorting'       => true,
+			'search'        => true,
+			'filter'        => true,
+			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getTables'),
+			'reference'         => &$GLOBALS['TL_LANG']['workflow']['services'],
+			'eval'              => array
+			(
+				'includeBlankOption' => true,
+				'submitOnChange'     => true,
+				'mandatory'          => true,
+				'tl_class'           => 'w50',
+			),
+			'sql'               => "varchar(64) NOT NULL default ''",
+		),
+
+		'reference' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['reference'],
+			'inputType'         => 'select',
+			'exclude'       => true,
+			'sorting'       => true,
+			'search'        => true,
+			'filter'        => true,
+			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getReferenceTables'),
+			'reference'         => &$GLOBALS['TL_LANG']['workflow']['services'],
+			'eval'              => array
+			(
+				'includeBlankOption' => true,
+				'submitOnChange'     => true,
+				'mandatory'          => true,
+				'tl_class'           => 'w50',
+			),
+			'sql'               => "varchar(64) NOT NULL default ''",
+		),
+
 		'events' => array
 		(
 			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['events'],
@@ -188,7 +228,7 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['steps'],
 			'inputType'         => 'checkbox',
 			'exclude'           => true,
-			'options'           => &$GLOBALS['TL_CONFIG']['workflow_steps'],
+			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getSteps'),
 			'reference'         => &$GLOBALS['TL_LANG']['workflow']['steps'],
 			'eval'              => array
 			(
@@ -197,6 +237,21 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 				'tl_class'  => 'clr',
 			),
 			'sql'               => "mediumblob NULL",
+		),
+
+		'state' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['state'],
+			'inputType'         => 'select',
+			'exclude'           => true,
+			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getAllStates'),
+			'reference'         => &$GLOBALS['TL_LANG']['workflow']['state'],
+			'eval'              => array
+			(
+				'mandatory' => true,
+				'tl_class'  => 'w50',
+			),
+			'sql'               => "varchar(32) NOT NULL default ''",
 		),
 
 		'roles' => array
@@ -234,7 +289,7 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['notify_email'],
 			'inputType'         => 'checkbox',
 			'exclude'           => true,
-			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getUsers'),
+			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getAllUsers'),
 			'eval'              => array
 			(
 				'multiple'      => true,
