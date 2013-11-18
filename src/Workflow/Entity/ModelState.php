@@ -116,7 +116,7 @@ class ModelState extends Entity
 	 */
 	public function getData()
 	{
-		return deserialize($this->getProperty('data'), true);
+		return json_decode($this->getProperty('data'));
 	}
 
 
@@ -128,7 +128,7 @@ class ModelState extends Entity
 	public function setData($data)
 	{
 		if (!is_string($data)) {
-			$data = serialize($data);
+			$data = json_encode($data);
 		}
 
 		$this->setProperty('data', $data);

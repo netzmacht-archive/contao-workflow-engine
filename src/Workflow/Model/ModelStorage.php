@@ -123,7 +123,7 @@ class ModelStorage
 	{
 		$builder = ConfigBuilder::create($this->driver)
 			->filterEquals('workflowIdentifier', $model->getWorkflowIdentifier())
-			->setIdOnly(true);
+			->idOnly(true);
 
 		if($processName !== null)
 		{
