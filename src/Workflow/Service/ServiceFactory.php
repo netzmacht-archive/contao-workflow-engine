@@ -90,35 +90,16 @@ class ServiceFactory
 	 */
 	public static function forWorkflow($workflow, Controller $controller)
 	{
-		if(!$workflow instanceof ModelInterface)
+		if($workflow instanceof ModelInterface)
 		{
-			$driver = $controller->getDriverManager()->getDataProvider('tl_workflow');
-
-			$config = $driver->getEmptyConfig();
-			$config->setId($workflow);
-
-			$workflow = $driver->fetch($config);
-
-			if($workflow === null)
-			{
-				throw new WorkflowException(sprintf('Unknown workflow with ID "%s', $config->getId()));
-			}
+			$workflow = $workflow->getId();
 		}
 
-		$services = deserialize($workflow->getProperty('services'), true);
-		$ids = array();
+		$driver = $controller->getDataProvider('tl_workflow_service');
+		$builder = ConfigBuilder::create($driver)->filterEquals('pid', $workflow);
 
-		foreach($services as $service)
-		{
-			if(!$service['disabled'])
-			{
-				$ids[] = $service['service'];
-			}
-		}
-
-		$driver = $controller->getDriverManager()->getDataProvider('tl_workflow_service');
-		$builder = ConfigBuilder::create($driver)->filterIn('id', $ids);
 		$services = array();
+		$services[] = static::create('core', $controller);
 
 		/** @var \DcGeneral\Data\ModelInterface $serviceModel */
 		foreach($builder->fetchAll() as $serviceModel)

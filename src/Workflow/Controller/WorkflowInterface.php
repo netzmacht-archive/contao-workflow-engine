@@ -61,6 +61,18 @@ interface WorkflowInterface
 
 
 	/**
+	 * @return EntityInterface
+	 */
+	public function getEntity();
+
+
+	/**
+	 *
+	 */
+	public function getProcessConfiguration();
+
+
+	/**
 	 * @param EntityInterface $entity
 	 * @return mixed
 	 */
@@ -104,8 +116,9 @@ interface WorkflowInterface
 
 	/**
 	 * @param EntityInterface $entity
+	 * @param $tableName=null
 	 * @return EntityInterface|null
 	 */
-	public function getParent(EntityInterface $entity);
+	public function getParent(EntityInterface $entity, $tableName=null);
 
 }

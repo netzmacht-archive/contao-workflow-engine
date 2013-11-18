@@ -65,6 +65,24 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 
 
 	/**
+	 * @return EntityInterface
+	 */
+	public function getEntity()
+	{
+		return $this->workflow;
+	}
+
+
+	/**
+	 * @return array
+	 */
+	public function getProcessConfiguration()
+	{
+		return $this->processes;
+	}
+
+
+	/**
 	 * Set controller
 	 *
 	 * @param Controller $controller
@@ -108,9 +126,10 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 
 	/**
 	 * @param EntityInterface $entity
+	 * @param $tableName
 	 * @return EntityInterface|null
 	 */
-	public function getParent(EntityInterface $entity)
+	public function getParent(EntityInterface $entity, $tableName=null)
 	{
 		$config = $this->getConfig($entity->getProviderName());
 
@@ -118,9 +137,21 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 		{
 			$driver = $this->controller->getDataProvider($config['parent']);
 
-			return ConfigBuilder::create($driver)
+			$parent = ConfigBuilder::create($driver)
 				->filterEquals('id', $entity->getProperty('pid'))
 				->fetch();
+
+			if($tableName == null || $config['parent'] == $tableName)
+			{
+				return $parent;
+			}
+
+			$config = $this->getConfig($config['parent']);
+
+			if($config)
+			{
+				return $this->getParent($parent, $tableName);
+			}
 		}
 
 		return null;

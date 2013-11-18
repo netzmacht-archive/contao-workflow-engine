@@ -31,7 +31,7 @@ class Workflow extends Generic
 	public function getWorkflowTables()
 	{
 		$tables   = array();
-		$workflow = $this->model->getProperty('workflow');
+		$workflow = $this->entity->getProperty('workflow');
 
 		if(isset($GLOBALS['TL_WORKFLOWS'][$workflow]))
 		{

@@ -4,7 +4,9 @@ namespace Workflow\Contao\Dca;
 
 use DcaTools\Data\ConfigBuilder;
 use DcaTools\Definition;
+use DcaTools\DynamicParent;
 use DcaTools\Translator;
+use Workflow\Handler\ProcessFactory;
 
 
 /**
@@ -28,9 +30,15 @@ class Service extends Generic
 
 
 	/**
-	 * @var \DcGeneral\Data\ModelInterface
+	 * @var \Workflow\Controller\WorkflowInterface
 	 */
 	protected $workflow;
+
+
+	/**
+	 * @var \Workflow\Flow\Process[]
+	 */
+	protected $processes = array();
 
 
 	/**
@@ -45,24 +53,11 @@ class Service extends Generic
 	 * Initialize workflow service callbacks
 	 * @param $dc
 	 */
-	public function callbackOnLoad($dc)
+	public function initialize($dc)
 	{
-		global $container;
+		parent::initialize($dc);
 
-		if(\Input::get('act') == '')
-		{
-			return;
-		}
-
-		$this->dc = $dc;
-
-		/** @var \DcaTools\Data\DriverManagerInterface $manager */
-		$manager = $container['dcatools.driver-manager'];
-		$driver  = $manager->getDataProvider($dc->table);
-
-		$this->entity = ConfigBuilder::create($driver)->setId($dc->id)->fetch();
-
-		if(!$this->entity)
+		if(\Input::get('act') == '' || !$this->entity)
 		{
 			return;
 		}
@@ -79,7 +74,7 @@ class Service extends Generic
 				$this->config = $serviceClass::getConfig();
 				$palette = Definition::getPalette($dc->table);
 
-				foreach($this->config->getConfigProperties() as $legend => $properties)
+				foreach($this->config['config'] as $legend => $properties)
 				{
 					foreach($properties as $property)
 					{
@@ -90,12 +85,124 @@ class Service extends Generic
 		}
 
 		// load workflow class
-		$driver = $manager->getDataProvider('tl_workflow');
+		$driver = $this->manager->getDataProvider('tl_workflow');
 
-		$config = $driver->getEmptyConfig();
-		$config->setId($this->entity->getProperty('pid'));
+		$this->workflow = ConfigBuilder::create($driver)
+			->setId($this->entity->getProperty('pid'))
+			->fetch();
 
-		$this->workflow = $driver->fetch($config);
+
+		if($this->workflow)
+		{
+			/** @var \Workflow\Controller\WorkflowManager $workflowManager */
+			$workflowManager = $GLOBALS['container']['workflow.workflow-manager'];
+			$this->workflow = $workflowManager->create($this->workflow);
+		}
+	}
+
+
+	/**
+	 * Get all available services
+	 *
+	 * @return array
+	 */
+	public function getServices()
+	{
+		$services = array();
+
+		foreach($GLOBALS['TL_WORKFLOW_SERVICES'] as $name => $serviceClass)
+		{
+			/** @var \Workflow\Service\ServiceInterface $serviceClass */
+			$config = $serviceClass::getConfig();
+
+			$services[$name] = sprintf('%s (%s)', Translator::translate(sprintf('workflow/services/%s/0', $config['name'])), $config['name']);
+		}
+
+		return $services;
+	}
+
+
+	/**
+	 * Get all steps of current workflow
+	 *
+	 * @return array
+	 */
+	public function getSteps()
+	{
+		$processes = $this->workflow->getProcessConfiguration();
+		$table     = $this->entity->getProperty('tableName');
+		$steps     = array();
+
+		if($processes[$table])
+		{
+			$process = $this->getProcess($processes[$table]);
+
+			foreach($process->getSteps() as $step)
+			{
+				$steps[] = $step->getName();
+			}
+		}
+
+		return $steps;
+	}
+
+
+	/**
+	 * Get all defined tables of the workflow
+	 * @return array
+	 */
+	public function getTables()
+	{
+		$processes = deserialize($this->workflow->getEntity()->getProperty('processes'), true);
+		$tables    = array();
+
+		foreach($processes as $config)
+		{
+			$tables[] = $config['table'];
+		}
+
+		return $tables;
+	}
+
+
+	/**
+	 * @return array
+	 */
+	public function getAllStates()
+	{
+		$processes = $this->workflow->getProcessConfiguration();
+		$table     = $this->entity->getProperty('tableName');
+		$states    = array();
+
+		if($processes[$table])
+		{
+			$process = $this->getProcess($processes[$table]);
+
+			foreach($process->getSteps() as $step)
+			{
+				foreach($step->getNextStates() as $state)
+				{
+					$states[] = $state->getName();
+				}
+			}
+		}
+
+		return $states;
+	}
+
+
+	/**
+	 * @param $process
+	 * @return \Workflow\Flow\Process
+	 */
+	protected function getProcess($process)
+	{
+		if(!isset($this->processes[$process]))
+		{
+			$this->processes[$process] = ProcessFactory::create($process);
+		}
+
+		return $this->processes[$process];
 	}
 
 
@@ -109,6 +216,7 @@ class Service extends Generic
 	 */
 	public function callbackOnCreate($tableName, $insertID, $set, $dc)
 	{
+		return;
 		global $container;
 
 		/** @var \DcaTools\Data\DriverManagerInterface $manager */
@@ -142,25 +250,7 @@ class Service extends Generic
 	}
 
 
-	/**
-	 * Get all available services
-	 *
-	 * @return array
-	 */
-	public function getServices()
-	{
-		$services = array();
 
-		foreach($GLOBALS['TL_WORKFLOW_SERVICES'] as $name => $serviceClass)
-		{
-			/** @var \Workflow\Service\ServiceInterface $serviceClass */
-			$configClass = $serviceClass::getConfig();
-
-			$services[$name] = sprintf('%s (%s)', $configClass->getName(), $configClass->getIdentifier());
-		}
-
-		return $services;
-	}
 
 
 	/**
@@ -171,6 +261,39 @@ class Service extends Generic
 	public function getEvents()
 	{
 		return $this->config->getEvents();
+	}
+
+
+	public function getReferenceTables()
+	{
+		$table = ConfigBuilder::create($this->manager->getDataProvider('tl_workflow'))
+			->field('tableName')
+			->filterEquals('id', $this->model->getProperty('pid'))
+			->fetch()
+			->getProperty('tableName');
+
+		if(!$table)
+		{
+			return array();
+		}
+
+		$definition = Definition::getDataContainer($table);
+		$parents    = array($table);
+
+		while($definition->get('config/ptable') !== null)
+		{
+			$table = DynamicParent::getDynamicParent($definition->getName(), $this->model->getProperty('limitModule'));
+
+			if(!$table)
+			{
+				break;
+			}
+
+			$definition = Definition::getDataContainer($table);
+			$parents[] = $table;
+		}
+
+		return $parents;
 	}
 
 
@@ -200,6 +323,11 @@ class Service extends Generic
 
 		foreach($tables as $table)
 		{
+			if(!$table)
+			{
+				continue;
+			}
+
 			$definition = Definition::getDataContainer($table);
 			$translator = Translator::create($table);
 
@@ -215,6 +343,12 @@ class Service extends Generic
 		}
 
 		return $operations;
+	}
+
+
+	public function generateChildRecord($row)
+	{
+		return sprintf('%s <span class="tl_gray">[%s]</span>', $row['name'], $row['service']);
 	}
 
 }

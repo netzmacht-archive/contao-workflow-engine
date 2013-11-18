@@ -3,6 +3,7 @@
 namespace Workflow\Contao\Connector;
 
 use DcaTools\Data\ConfigBuilder;
+use DcaTools\Data\ModelFactory;
 use DcaTools\Definition;
 use DcaTools\Definition\DataContainer;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -93,9 +94,10 @@ class TableConnector extends AbstractConnector
 	 */
 	protected function initializeController()
 	{
-		$this->controller = $GLOBALS['container']['workflow.controller'];
+		/** @var \Workflow\Controller\Controller $controller */
+		$controller = $GLOBALS['container']['workflow.controller'];
 
-		$driver = $this->controller->getDataProvider($this->definition->getName());
+		$driver = $controller->getDataProvider($this->definition->getName());
 		$entity = null;
 
 		if($this->parentView)
@@ -111,7 +113,7 @@ class TableConnector extends AbstractConnector
 			if($this->id && $this->definition->get('config/ptable'))
 			{
 				$table  = $this->definition->get('config/ptable');
-				$driver = $this->controller->getDataProvider($table);
+				$driver = $controller->getDataProvider($table);
 				$entity = ConfigBuilder::create($driver)->setId($this->id)->fetch();
 			}
 		}
@@ -121,7 +123,11 @@ class TableConnector extends AbstractConnector
 
 		if($entity)
 		{
-			return $this->controller->initialize($entity);
+			if($controller->initialize($entity))
+			{
+				$this->controller = $controller;
+				return true;
+			}
 		}
 
 		return false;
@@ -159,7 +165,7 @@ class TableConnector extends AbstractConnector
 	 */
 	public function callbackSave($value, $dc)
 	{
-		if(!$this->reachedChanged)
+		if($this->controller && !$this->reachedChanged)
 		{
 			if($value != $this->controller->getCurrentModel()->getEntity()->getProperty($dc->field))
 			{
@@ -181,7 +187,7 @@ class TableConnector extends AbstractConnector
 	 */
 	public function callbackOnSubmit()
 	{
-		if($this->reachedChanged)
+		if($this->controller && $this->reachedChanged)
 		{
 			$state = $this->controller->getCurrentState($this->controller->getCurrentModel());
 			$state->setData($this->controller->getCurrentModel()->getWorkflowData());
@@ -201,23 +207,41 @@ class TableConnector extends AbstractConnector
 	 */
 	public function callbackOnCreate($table, $insertID, $set)
 	{
-		$driver = $this->controller->getDataProvider($table);
+		$this->definition = Definition::getDataContainer($table);
+		$this->id = $insertID;
+		$this->parentView = false;
 
-		$entity = $driver->getEmptyModel();
-		$entity->setPropertiesAsArray($set);
-		$entity->setId($insertID);
+		if($this->initializeController())
+		{
+			$driver = $this->controller->getDataProvider($table);
 
-		$model = new Model($entity, $this->controller);
-		$this->controller->getProcessHandler()->start($model);
+			$entity = $driver->getEmptyModel();
+			$entity->setPropertiesAsArray($set);
+			$entity->setId($insertID);
+
+			$model = new Model($entity, $this->controller);
+
+			if(!$this->controller->getProcessHandler()->getCurrentState($model))
+			{
+				$this->controller->getProcessHandler()->start($model);
+			}
+		}
 	}
 
 
 	/**
 	 * Trigger delete action if action is defined in process steps
 	 */
-	public function callbackOnDelete()
+	public function callbackOnDelete($dc)
 	{
-		if($this->hasState('delete'))
+		$entity = ModelFactory::byDc($dc);
+
+		if(!$this->controller)
+		{
+			$this->controller = $GLOBALS['container']['workflow.controller'];
+		}
+
+		if($this->controller->initialize($entity))
 		{
 			$this->reachNextState('delete');
 		}

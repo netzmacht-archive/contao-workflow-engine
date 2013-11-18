@@ -71,7 +71,7 @@ class ModelStorage
 		$builder = ConfigBuilder::create($this->driver)
 			->filterEquals('workflowIdentifier', $model->getWorkflowIdentifier())
 			->filterEquals('processName', $processName)
-			->sorting('createdAt', DCGE::MODEL_SORTING_ASC);
+			->sorting('createdAt', DCGE::MODEL_SORTING_DESC);
 
 		if($successOnly)
 		{

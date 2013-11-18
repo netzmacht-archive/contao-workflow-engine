@@ -143,14 +143,20 @@ abstract class AbstractConnector implements ConnectorInterface
 	 * Trigger an error will create log message and redirect to error page
 	 *
 	 * @param $strMessage
+	 * @param bool $redirect
 	 */
-	public static function error($strMessage)
+	public static function error($strMessage, $redirect=true)
 	{
 		$arrDebug = debug_backtrace();
 		$strCall = $arrDebug[1]['class'] . ' ' .$arrDebug[1]['function'];
 
 		\Controller::log($strMessage, $strCall, 'TL_ERROR');
-		\Controller::redirect('contao/main.php?act=error');
+
+		if($redirect)
+		{
+			\Controller::redirect('contao/main.php?act=error');
+		}
+
 	}
 
 

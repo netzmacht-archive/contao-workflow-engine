@@ -38,6 +38,17 @@ class Controller
 
 
 	/**
+	 * @var \Workflow\Model\ModelInterface[]
+	 */
+	protected $models = array();
+
+	/**
+	 * @var \Workflow\Controller\WorkflowInterface[]
+	 */
+	protected $workflows = array();
+
+
+	/**
 	 * @param WorkflowManager $workflowManager
 	 * @param \DcaTools\Data\DriverManagerInterface $driverManager
 	 * @param EventDispatcher $eventDispatcher
@@ -58,21 +69,27 @@ class Controller
 	 */
 	public function initialize(EntityInterface $entity)
 	{
-		$this->currentModel = new Model($entity, $this);
-
-		if($this->initializeWorkflow($entity))
+		if(!isset($this->models[$entity->getProviderName()][$entity->getId()]))
 		{
+			$this->currentModel = new Model($entity, $this);
+
+			if(!$this->initializeWorkflow($this->currentModel))
+			{
+				return false;
+			}
+
 			$state = $this->getProcessHandler()->getCurrentState($this->currentModel);
 
 			if(!$state)
 			{
 				$this->getProcessHandler()->start($this->currentModel);
 			}
-
-			return true;
 		}
 
-		return false;
+		$this->currentModel    = $this->models[$entity->getProviderName()][$entity->getId()]['model'];
+		$this->currentWorkflow = $this->models[$entity->getProviderName()][$entity->getId()]['workflow'];
+
+		return true;
 	}
 
 
@@ -144,17 +161,34 @@ class Controller
 	/**
 	 * Initialize all matched workflows
 	 *
-	 * @param EntityInterface $entity
+	 * @param ModelInterface $model
 	 * @return bool
 	 */
-	protected function initializeWorkflow(EntityInterface $entity)
+	protected function initializeWorkflow(ModelInterface $model)
 	{
-		$workflow = $this->getAssignedWorkflow($entity);
+		$tableName  = $model->getEntity()->getProviderName();
+		$tableId    = $model->getEntity()->getId();
+		$workflow   = $this->getAssignedWorkflow($model->getEntity());
 
-		if($workflow && (!$this->currentWorkflow || $workflow != $this->currentWorkflow))
+		if($workflow)
 		{
+			$workflowId = $workflow->getEntity()->getId();
+
+			$this->models[$tableName][$tableId] = array
+			(
+				'model'    => $model,
+				'workflow' => $workflow,
+			);
+
 			$this->currentWorkflow = $workflow;
-			$this->currentWorkflow->initialize();
+
+			if(!isset($this->workflows[$workflowId]))
+			{
+				$this->workflows[$workflowId] = $workflow;
+
+				$workflow->initialize();
+			}
+
 			return true;
 		}
 

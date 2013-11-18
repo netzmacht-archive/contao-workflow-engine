@@ -48,7 +48,7 @@ interface ProcessHandlerInterface
      *
      * @param  ModelInterface $model
      * @param  boolean        $successOnly
-     * @return array
+     * @return \Workflow\Flow\NextState[]
      */
     public function getAllStates(ModelInterface $model, $successOnly = true);
 

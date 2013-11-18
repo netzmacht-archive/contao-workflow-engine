@@ -1,26 +1,25 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 05.11.13
- * Time: 10:40
- */
 
 namespace Workflow\Contao\Dca;
 
 use DcaTools\Data\ConfigBuilder;
 use DcaTools\Definition;
-use DcGeneral\Data\DCGE;
 use DcGeneral\DC_General;
 
 
+/**
+ * Class Generic provides basic helpers for getting access
+ *
+ * @package Workflow\Contao\Dca
+ * @author David Molineus <molineus@netzmacht.de>
+ */
 class Generic
 {
 
 	/**
 	 * @var static
 	 */
-	protected static $instance;
+	protected static $instances;
 
 
 	/**
@@ -38,7 +37,7 @@ class Generic
 	/**
 	 * @var \DcGeneral\Data\ModelInterface
 	 */
-	protected $model;
+	protected $entity;
 
 
 	/**
@@ -53,12 +52,14 @@ class Generic
 	 */
 	public static function getInstance()
 	{
-		if(!static::$instance)
+		$className = get_called_class();
+
+		if(!static::$instances[$className])
 		{
-			static::$instance = new static;
+			static::$instances[$className] = new static();
 		}
 
-		return static::$instance;
+		return static::$instances[$className];
 	}
 
 
@@ -70,33 +71,24 @@ class Generic
 		if($dc instanceof DC_General)
 		{
 			$this->manager = $dc;
-
-			$table = $dc->getTable();
-			$id    = $dc->getId();
+			$table         = $dc->getTable();
+			$id            = $dc->getId();
 		}
 		else
 		{
 			/** @var \DcaTools\Data\DriverManagerInterface $manager */
-			$manager = $GLOBALS['container']['dcatools.driver-manager'];
-			$this->manager = $manager;
-
-			$table = $dc->table;
-			$id    = $dc->id;
+			$this->manager = $GLOBALS['container']['dcatools.driver-manager'];
+			$table         = $dc->table;
+			$id            = $dc->id;
 		}
 
 		$this->driver     = $this->manager->getDataProvider($table);
 		$this->definition = Definition::getDataContainer($table);
-		$this->model      = ConfigBuilder::create($this->driver)->setId($id)->fetch();
-	}
 
-
-	/**
-	 * @return array
-	 */
-	public function getTables()
-	{
-		// TODO: support non database data containers
-		return array_values(array_diff(\Database::getInstance()->listTables(), $GLOBALS['TL_CONFIG']['workflow_disabledTables']));
+		if($id)
+		{
+			$this->entity = ConfigBuilder::create($this->driver)->setId($id)->fetch();
+		}
 	}
 
 
@@ -104,22 +96,16 @@ class Generic
 	 * Get all users
 	 * @return array
 	 */
-	public function getUsers()
+	public function getAllUsers()
 	{
-		global $container;
-
-		/** @var \DcaTools\Data\DriverManagerInterface $manager */
-		$manager = $container['dcatools.driver-manager'];
-		$driver = $manager->getDataProvider('tl_user');
-
-		$config = $driver->getEmptyConfig();
-		$config->setFields(array('id', 'username', 'name'));
-		$config->setSorting(array('name' => DCGE::MODEL_SORTING_ASC));
-
-		$users = array();
+		$users   = array();
+		$driver  = $this->manager->getDataProvider('tl_user');
+		$builder = ConfigBuilder::create($driver)
+			->setFields(array('id', 'username', 'name'))
+			->sorting('name');
 
 		/** @var \DcGeneral\Data\ModelInterface $user */
-		foreach($driver->fetchAll($config) as $user)
+		foreach($builder->fetchAll() as $user)
 		{
 			$users[$user->getId()] = sprintf('%s [%s]', $user->getProperty('name'), $user->getProperty('username'));
 		}
@@ -127,4 +113,4 @@ class Generic
 		return $users;
 	}
 
-} 
+}

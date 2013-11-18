@@ -109,7 +109,7 @@ class ParentService extends AbstractService
 
 			$definition->registerCallback('ondelete', array($class, 'callbackRouter'));
 			$definition->registerCallback('onsubmit', array($class, 'callbackOnSubmit'));
-			$definition->registerCallback('oncreate', array($class, 'callbackRouter'));
+			$definition->registerCallback('oncreate', array($class, 'callbackOnCreate'));
 
 			// TODO: which callbacks do we need?
 		}
@@ -124,25 +124,7 @@ class ParentService extends AbstractService
 	public function callbackRouter($dc)
 	{
 		$entity = $this->getEntity($dc);
-
-		if($this->isAssigned($entity))
-		{
-			$workflow = $this->controller->getCurrentWorkflow();
-			$parent   = $workflow->getParent($entity);
-
-			if($parent)
-			{
-				$this->controller->initialize($parent);
-
-				try {
-					$this->controller->reachNextState($this->service->getProperty('state'));
-				}
-				catch(WorkflowException $e)
-				{
-					AbstractConnector::error($e->getMessage(), false);
-				}
-			}
-		}
+		$this->route($entity);
 	}
 
 
@@ -157,6 +139,22 @@ class ParentService extends AbstractService
 		{
 			$this->callbackRouter($dc);
 		}
+	}
+
+
+	/**
+	 * @param $table
+	 * @param $insertID
+	 * @param $set
+	 * @param $dc
+	 */
+	public function callbackOnCreate($table, $insertID, $set, $dc)
+	{
+		$entity = $this->controller->getDataProvider($table)->getEmptyModel();
+		$entity->setPropertiesAsArray($set);
+		$entity->setId($insertID);
+
+		$this->route($entity);
 	}
 
 
@@ -193,6 +191,32 @@ class ParentService extends AbstractService
 		}
 
 		return $this->entity;
+	}
+
+
+	/**
+	 * @param EntityInterface $entity
+	 */
+	protected function route(EntityInterface $entity)
+	{
+		if($this->isAssigned($entity))
+		{
+			$workflow = $this->controller->getCurrentWorkflow();
+			$parent   = $workflow->getParent($entity);
+
+			if($parent)
+			{
+				$this->controller->initialize($parent);
+
+				try {
+					$this->controller->reachNextState($this->service->getProperty('state'));
+				}
+				catch(WorkflowException $e)
+				{
+					AbstractConnector::error($e->getMessage(), false);
+				}
+			}
+		}
 	}
 
 }
