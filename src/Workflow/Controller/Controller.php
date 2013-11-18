@@ -1,154 +1,78 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 08.11.13
- * Time: 12:53
- */
 
 namespace Workflow\Controller;
 
-
-use DcaTools\Data\ConfigBuilder;
-use DcGeneral\Data\DCGE;
-use DcGeneral\Data\ModelInterface;
+use DcGeneral\Data\ModelInterface as EntityInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use Workflow\Entity\Workflow;
-use Workflow\Event\InitialisationEvent;
-use Workflow\Handler\ProcessHandler;
-use Workflow\Handler\ProcessHandlerInterface;
+use Workflow\Event\WorkflowTypeEvent;
 use Workflow\Model\Model;
-use Workflow\Service\ServiceFactory;
+use Workflow\Model\ModelInterface;
 
 
-/**
- * Class Controller allow to run workflow tasks for an assigned Model and provides access to several objects
- *
- * @package Workflow\Controller
- */
 class Controller
 {
-
-	/**
-	 * @var \Workflow\Model\ModelInterface
-	 */
-	protected $model;
-
-	/**
-	 * @var \Symfony\Component\EventDispatcher\EventDispatcher
-	 */
-	protected $dispatcher;
-
 	/**
 	 * @var \DcaTools\Data\DriverManagerInterface
 	 */
 	protected $driverManager;
 
 	/**
-	 * @var Workflow
+	 * @var \Symfony\Component\EventDispatcher\EventDispatcher
 	 */
-	protected $workflow;
+	protected $eventDispatcher;
 
 	/**
-	 * @var \Workflow\Handler\ProcessHandlerInterface
+	 * @var \Workflow\Controller\WorkflowManager
 	 */
-	protected $handler;
+	protected $workflowManager;
 
+	/**
+	 * @var \Workflow\Model\ModelInterface
+	 */
+	protected $currentModel;
+
+	/**
+	 * @var \Workflow\Controller\WorkflowInterface
+	 */
+	protected $currentWorkflow;
 
 
 	/**
-	 * @param ModelInterface $model
-	 * @param Workflow $workflow
-	 * @param ProcessHandlerInterface $handler
-	 * @param EventDispatcher $dispatcher
+	 * @param WorkflowManager $workflowManager
 	 * @param \DcaTools\Data\DriverManagerInterface $driverManager
+	 * @param EventDispatcher $eventDispatcher
 	 */
-	public function __construct(ModelInterface $model, Workflow $workflow, ProcessHandlerInterface $handler, EventDispatcher $dispatcher, $driverManager)
+	public function __construct(WorkflowManager $workflowManager, $driverManager, EventDispatcher $eventDispatcher)
 	{
-		$this->model = new Model($model, $this);
-		$this->handler = $handler;
-		$this->workflow = $workflow;
-		$this->dispatcher = $dispatcher;
-		$this->driverManager = $driverManager;
+		$this->workflowManager = $workflowManager;
+		$this->driverManager   = $driverManager;
+		$this->eventDispatcher = $eventDispatcher;
+
+		$this->workflowManager->bootstrap($this);
 	}
 
 
 	/**
-	 * Initialize the controller
+	 * @param EntityInterface $entity
+	 * @return bool
 	 */
-	public function initialize()
+	public function initialize(EntityInterface $entity)
 	{
-		$this->initializeServices();
+		$this->currentModel = new Model($entity, $this);
 
-		$state = $this->initializeModel();
-		$event = new InitialisationEvent($this->model, $state);
-		$eventName = sprintf('workflow.%s.initialized', $state->getProcessName());
-
-		$this->dispatcher->dispatch($eventName, $event);
-	}
-
-
-	protected function initializeModel()
-	{
-		$state = $this->getCurrentState();
-
-		if(!$state)
+		if($this->initializeWorkflow($entity))
 		{
-			$state = $this->getProcessHandler()->start($this->model);
-		}
+			$state = $this->getProcessHandler()->getCurrentState($this->currentModel);
 
-		return $state;
-	}
-
-
-	protected function initializeServices()
-	{
-		$coreService = ServiceFactory::create('core', $this);
-		$coreService->initialize();
-
-		$this->workflow->addService($coreService);
-
-		$driver = $this->getDriverManager()->getDataProvider('tl_workflow_service');
-		$config = ConfigBuilder::create($driver)
-			->filterEquals('pid', $this->workflow->getId())
-			->sorting('sorting')
-			->getConfig();
-
-		foreach($driver->fetchAll($config) as $entity)
-		{
-			$service = ServiceFactory::create($entity, $this);
-			$service->initialize();
-
-			$this->workflow->addService($service);
-		}
-	}
-
-
-	/**
-	 * @param $stateName
-	 *
-	 * @return \Workflow\Entity\ModelState
-	 */
-	public function reachNextState($stateName)
-	{
-		$state = $this->getProcessHandler()->reachNextState($this->model, $stateName);
-
-		if($state->getSuccessful())
-		{
-			if($state->getMeta(DCGE::MODEL_IS_CHANGED))
+			if(!$state)
 			{
-				$driver = $this->driverManager->getDataProvider($state->getProviderName());
-				$driver->save($state);
+				$this->getProcessHandler()->start($this->currentModel);
 			}
 
-			if($this->model->getEntity()->getMeta(DCGE::MODEL_IS_CHANGED))
-			{
-				$driver = $this->driverManager->getDataProvider($this->model->getEntity()->getProviderName());
-				$driver->save($this->model->getEntity());
-			}
+			return true;
 		}
 
-		return $state;
+		return false;
 	}
 
 
@@ -157,53 +81,54 @@ class Controller
 	 */
 	public function getCurrentState()
 	{
-		return $this->getProcessHandler()->getCurrentState($this->model);
+		return $this->getProcessHandler()->getCurrentState($this->currentModel);
 	}
 
 
 	/**
-	 * @return \Workflow\Model\ModelInterface
+	 * @return WorkflowInterface
 	 */
-	public function getModel()
+	public function getCurrentWorkflow()
 	{
-		return $this->model;
+		return $this->currentWorkflow;
 	}
 
 
 	/**
-	 * @param ModelInterface $model
+	 * @return ModelInterface
 	 */
-	public function setModel(ModelInterface $model)
+	public function getCurrentModel()
 	{
-		$this->model = $model;
-		$this->initializeModel();
+		return $this->currentModel;
 	}
 
 
 	/**
-	 * @return \Workflow\Entity\Workflow
+	 * @param $stateName
+	 * @return \Workflow\Entity\ModelState
 	 */
-	public function getWorkflow()
+	public function reachNextState($stateName)
 	{
-		return $this->workflow;
+		return $this->getProcessHandler()->reachNextState($this->currentModel, $stateName);
 	}
 
 
 	/**
-	 * @return \DcaTools\Data\DriverManagerInterface
-	 */
-	public function getDriverManager()
-	{
-		return $this->driverManager;
-	}
-
-
-	/**
-	 * @return ProcessHandler
+	 * @return \Workflow\Handler\ProcessHandlerInterface
 	 */
 	public function getProcessHandler()
 	{
-		return $this->handler;
+		return $this->currentWorkflow->getProcessHandler($this->currentModel->getEntity()->getProviderName());
+	}
+
+
+	/**
+	 * @param $tableName
+	 * @return \DcGeneral\Data\DriverInterface
+	 */
+	public function getDataProvider($tableName)
+	{
+		return $this->driverManager->getDataProvider($tableName);
 	}
 
 
@@ -212,7 +137,76 @@ class Controller
 	 */
 	public function getEventDispatcher()
 	{
-		return $this->dispatcher;
+		return $this->eventDispatcher;
+	}
+
+
+	/**
+	 * Initialize all matched workflows
+	 *
+	 * @param EntityInterface $entity
+	 * @return bool
+	 */
+	protected function initializeWorkflow(EntityInterface $entity)
+	{
+		$workflow = $this->getAssignedWorkflow($entity);
+
+		if($workflow && (!$this->currentWorkflow || $workflow != $this->currentWorkflow))
+		{
+			$this->currentWorkflow = $workflow;
+			$this->currentWorkflow->initialize();
+			return true;
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * @param EntityInterface $entity
+	 * @return \Workflow\Controller\WorkflowInterface
+	 */
+	protected function getAssignedWorkflow(EntityInterface $entity)
+	{
+		$types    = $this->getWorkflowTypes($entity);
+		$active   = null;
+		$priority = null;
+
+		if(!count($types))
+		{
+			return $active;
+		}
+
+		foreach($this->workflowManager->loadWorkflows($types) as $workflow)
+		{
+			$workflow = $this->workflowManager->create($workflow);
+			$workflow->setController($this);
+
+			if($workflow->isAssigned($entity))
+			{
+				if(!$active || $priority === null || $priority > $workflow->getPriority($entity))
+				{
+					$active = $workflow;
+					$priority = $workflow->getPriority($entity);
+				}
+			}
+		}
+
+		return $active;
+	}
+
+
+	/**
+	 * @param EntityInterface $entity
+	 * @return array
+	 */
+	protected function getWorkflowTypes(EntityInterface $entity)
+	{
+		$eventName = 'workflow.controller.get-workflow-types';
+		$event     = new WorkflowTypeEvent($entity);
+
+		$this->eventDispatcher->dispatch($eventName, $event);
+		return $event->getTypes();
 	}
 
 }
