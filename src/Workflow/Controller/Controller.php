@@ -95,6 +95,23 @@ class Controller
 
 
 	/**
+	 * @param $stepName
+	 * @return bool
+	 */
+	public function checkCredentials($stepName)
+	{
+		$processes = $this->currentWorkflow->getProcessConfiguration();
+		$tableName = $this->currentModel->getEntity()->getProviderName();
+
+		return $this->getProcessHandler()->checkCredentials($this->currentModel,
+			$this->getProcessHandler()
+				->getProcess($processes[$tableName])
+				->getStep($stepName)
+		);
+	}
+
+
+	/**
 	 * @return \Workflow\Entity\ModelState
 	 */
 	public function getCurrentState()

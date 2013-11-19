@@ -8,7 +8,6 @@ use Workflow\Entity\ModelState;
 use Workflow\Event\StepEvent;
 use Workflow\Event\ValidateStepEvent;
 use Workflow\Exception\WorkflowException;
-use Workflow\Exception\AccessDeniedException;
 use Workflow\Flow\Step;
 use Workflow\Flow\Process;
 use Workflow\Model\ModelStorage;
@@ -139,13 +138,12 @@ class ProcessHandler implements ProcessHandlerInterface
      */
     protected function reachStep(ModelInterface $model, Step $step, ModelState $currentModelState = null)
     {
-        try {
-            $this->checkCredentials($model, $step);
-        }
-        catch (AccessDeniedException $e)
-        {
+	    if(!$this->checkCredentials($model, $step))
+	    {
+		    $message = sprintf('Access denied. The current user is not allowed to reach the step "%s"', $step->getName());
+
 	        $violationList = new ViolationList();
-	        $violationList->add(new Violation($e->getMessage()));
+	        $violationList->add(new Violation($message));
 
             return $this->storage->newModelStateError($model, $this->process->getName(), $step->getName(), $violationList, $currentModelState);
         }
@@ -238,9 +236,9 @@ class ProcessHandler implements ProcessHandlerInterface
      *
      * @param  ModelInterface $model
      * @param  Step $step
-     * @throws AccessDeniedException
+     * @return bool
      */
-    protected function checkCredentials(ModelInterface $model, Step $step)
+    public function checkCredentials(ModelInterface $model, Step $step)
     {
 	    // auto grant access if no roles are defined
 	    $grant = (count($step->getRoles()) == 0);
@@ -248,9 +246,6 @@ class ProcessHandler implements ProcessHandlerInterface
 
 	    $this->dispatcher->dispatch('workflow.check_credentials', $event);
 
-        if (!$event->isGranted())
-        {
-            throw new AccessDeniedException($step->getName());
-        }
+        return $event->isGranted();
     }
 }

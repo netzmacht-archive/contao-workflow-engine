@@ -3,6 +3,7 @@
 namespace Workflow\Handler;
 
 use Workflow\Entity\ModelState;
+use Workflow\Flow\Step;
 use Workflow\Model\ModelInterface;
 
 /**
@@ -59,4 +60,13 @@ interface ProcessHandlerInterface
      * @return boolean
      */
     public function isProcessComplete(ModelInterface $model);
+
+
+	/**
+	 * @param ModelInterface $model
+	 * @param Step $step
+	 * @return bool
+	 */
+	public function checkCredentials(ModelInterface $model, Step $step);
+
 }
