@@ -102,22 +102,19 @@ class NewsWorkflow extends AbstractWorkflow
 	 */
 	public function isAssigned(EntityInterface $entity)
 	{
-		if(isset($this->processes[$entity->getProviderName()]))
+		switch($entity->getProviderName())
 		{
-			switch($entity->getProviderName())
-			{
-				case 'tl_news_archive':
-					return $this->isNewsArchiveAssigned($entity);
-					break;
+			case 'tl_news_archive':
+				return $this->isNewsArchiveAssigned($entity);
+				break;
 
-				case 'tl_news':
-					return $this->isNewsAssigned($entity);
-					break;
+			case 'tl_news':
+				return $this->isNewsAssigned($entity);
+				break;
 
-				case 'tl_content':
-					return $this->isContentElementAssigned($entity);
-					break;
-			}
+			case 'tl_content':
+				return $this->isContentElementAssigned($entity);
+				break;
 		}
 
 		return false;

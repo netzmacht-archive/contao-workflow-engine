@@ -135,6 +135,16 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 
 
 	/**
+	 * @param $tableName
+	 * @return bool
+	 */
+	public function hasProcess($tableName)
+	{
+		return isset($this->processes[$tableName]);
+	}
+
+
+	/**
 	 * Get current process handler
 	 *
 	 * @param $tableName

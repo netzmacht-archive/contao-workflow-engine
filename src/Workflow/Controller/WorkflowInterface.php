@@ -86,6 +86,15 @@ interface WorkflowInterface
 
 
 	/**
+	 * Consider whether table has a process or not
+	 *
+	 * @param string $tableName
+	 * @return true
+	 */
+	public function hasProcess($tableName);
+
+
+	/**
 	 * @param EntityInterface $entity
 	 * @return mixed
 	 */

@@ -89,13 +89,11 @@ class WorkflowManager
 		/** @var EntityInterface $workflowEntity */
 		foreach($this->loadWorkflows($types) as $workflowEntity)
 		{
-			$id  = $workflowEntity->getId();
+			$id = $workflowEntity->getId();
 
 			if(!isset($workflows[$id]))
 			{
 				$workflow = $this->createInstance($workflowEntity);
-				$this->controller->setCurrentWorkflow($workflow);
-
 				$this->workflows[$id] = $workflow;
 			}
 
@@ -111,6 +109,7 @@ class WorkflowManager
 
 		if($active)
 		{
+			$this->controller->setCurrentWorkflow($active);
 			$active->initialize();
 		}
 

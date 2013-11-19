@@ -78,7 +78,7 @@ class Controller
 		$this->currentModel    = new Model($entity, $this);
 		$this->currentWorkflow = $this->workflowManager->getAssignedWorkflow($entity);
 
-		if($this->currentWorkflow)
+		if($this->currentWorkflow && $this->currentWorkflow->hasProcess($entity->getProviderName()))
 		{
 			$state = $this->getProcessHandler()->getCurrentState($this->currentModel);
 
