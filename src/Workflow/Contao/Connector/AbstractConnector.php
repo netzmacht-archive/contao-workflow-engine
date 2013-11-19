@@ -101,22 +101,6 @@ abstract class AbstractConnector implements ConnectorInterface
 
 
 	/**
-	 * Route workflow tasks to the workflow process
-	 *
-	 * Listens to key=workflow
-	 *
-	 * @return mixed
-	 */
-	public function workflow()
-	{
-		if(\Input::get('state'))
-		{
-			$this->reachNextState(\Input::get('state'), true);
-		}
-	}
-
-
-	/**
 	 * Reach next step
 	 *
 	 * @param string $stateName

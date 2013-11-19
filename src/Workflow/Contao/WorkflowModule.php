@@ -27,12 +27,18 @@ class WorkflowModule
 	}
 
 
-	public function execute($dc)
+	/**
+	 * Execute workflow module
+	 *
+	 * Workflow module listens to key=workflow. Supported actions
+	 *  - state: reach next state
+	 */
+	public function execute()
 	{
-		//$this->connector->initialize($dc);
-		//var_dump('module');
-		//var_dump($this->connector);
-		$this->connector->workflow();
+		if(\Input::get('state'))
+		{
+			$this->connector->reachNextState(\Input::get('state'), true);
+		}
 	}
 
 } 

@@ -43,10 +43,9 @@ interface ConnectorInterface
 
 
 	/**
-	 * Route workflow tasks to the workflow process
-	 *
-	 * Listens to key=workflow
+	 * @param $stateName
+	 * @param bool $redirect
 	 */
-	public function workflow();
+	public function reachNextState($stateName, $redirect=false);
 
 }
