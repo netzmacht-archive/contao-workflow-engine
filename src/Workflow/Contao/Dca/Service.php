@@ -96,7 +96,7 @@ class Service extends Generic
 		{
 			/** @var \Workflow\Controller\WorkflowManager $workflowManager */
 			$workflowManager = $GLOBALS['container']['workflow.workflow-manager'];
-			$this->workflow = $workflowManager->create($this->workflow);
+			$this->workflow = $workflowManager->createInstance($this->workflow);
 		}
 	}
 
@@ -115,7 +115,7 @@ class Service extends Generic
 			/** @var \Workflow\Service\ServiceInterface $serviceClass */
 			$config = $serviceClass::getConfig();
 
-			$services[$name] = sprintf('%s (%s)', Translator::translate(sprintf('workflow/services/%s/0', $config['name'])), $config['name']);
+			$services[$name] = sprintf('%s (%s)', $GLOBALS['TL_LANG']['workflow']['services'][$config[$name]][0], $config['name']);
 		}
 
 		return $services;
@@ -172,11 +172,12 @@ class Service extends Generic
 	{
 		$processes = $this->workflow->getProcessConfiguration();
 		$table     = $this->entity->getProperty('tableName');
+		$config    = $this->workflow->getConfig($table);
 		$states    = array();
 
 		if($processes[$table])
 		{
-			$process = $this->getProcess($processes[$table]);
+			$process = $this->getProcess($processes[$config['parent']]);
 
 			foreach($process->getSteps() as $step)
 			{
@@ -186,6 +187,9 @@ class Service extends Generic
 				}
 			}
 		}
+
+		$states = array_unique($states);
+		sort($states);
 
 		return $states;
 	}
@@ -266,11 +270,14 @@ class Service extends Generic
 
 	public function getReferenceTables()
 	{
-		$table = ConfigBuilder::create($this->manager->getDataProvider('tl_workflow'))
-			->field('tableName')
-			->filterEquals('id', $this->model->getProperty('pid'))
-			->fetch()
-			->getProperty('tableName');
+		if($this->entity)
+		{
+			$table = ConfigBuilder::create($this->manager->getDataProvider('tl_workflow'))
+				->field('tableName')
+				->filterEquals('id', $this->entity->getProperty('pid'))
+				->fetch()
+				->getProperty('tableName');
+		}
 
 		if(!$table)
 		{
@@ -348,7 +355,7 @@ class Service extends Generic
 
 	public function generateChildRecord($row)
 	{
-		return sprintf('%s <span class="tl_gray">[%s]</span>', $row['name'], $row['service']);
+		return sprintf('%s <span class="tl_gray">[%s: %s]</span>', $row['name'], $row['tableName'], $row['service']);
 	}
 
 }

@@ -99,7 +99,8 @@ $GLOBALS['TL_CONFIG']['workflow_actions'] = array
  * Roles are assigned to a user group. Every role can be defined. The only required one is owner which is used to map
  * the author to the logged in backend user
  */
-$GLOBALS['TL_CONFIG']['workflow_roles'] = array(
+$GLOBALS['TL_CONFIG']['workflow_roles'] = array
+(
 	'owner',
 	'editor',
 	'reviewer',
@@ -140,9 +141,10 @@ array_insert($GLOBALS['BE_MOD'], 1, array
 /**
  * Provided workflow services
  */
-$GLOBALS['TL_WORKFLOW_SERVICES']['notify']          = 'Workflow\Service\NotifyService';
-$GLOBALS['TL_WORKFLOW_SERVICES']['parent']          = 'Workflow\Service\ParentService';
-$GLOBALS['TL_WORKFLOW_SERVICES']['restrict-access'] = 'Workflow\Service\RestrictAccessService';
+$GLOBALS['TL_WORKFLOW_SERVICES']['parent']              = 'Workflow\Service\ParentService';
+$GLOBALS['TL_WORKFLOW_SERVICES']['table-restrictions']  = 'Workflow\Service\TableRestrictions';
+//$GLOBALS['TL_WORKFLOW_SERVICES']['notify']          = 'Workflow\Service\NotifyService';
+//$GLOBALS['TL_WORKFLOW_SERVICES']['restrict-access'] = 'Workflow\Service\RestrictAccessService';
 
 
 $GLOBALS['TL_WORKFLOWS']['page'] = 'Workflow\Contao\Workflow\PageWorkflow';

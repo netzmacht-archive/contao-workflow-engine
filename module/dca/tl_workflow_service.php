@@ -32,7 +32,7 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 		'sorting' => array
 		(
 			'mode' => 4,
-			'flag' => 1,
+			'flag' => 2,
 			'headerFields'  => array('title', 'workflow'),
 			'panelLayout'   => 'sort,filter;search,limit',
 			'fields' => array('tableName', 'service'),
@@ -41,8 +41,8 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 
 		'label' => array
 		(
-			'fields'         => array('name', 'service'),
-			'format'         => '%s <span class="tl_gray">[%s]</span>',
+			'fields'         => array('name', 'tableName', 'service'),
+			'format'         => '%s <span class="tl_gray">[%s: %s %s]</span>',
 			//'format'         => array('%s')
 			//'label_callback' => array('Workflow\Contao\Dca\Workflow', 'callbackLabel'),
 		),
@@ -267,6 +267,21 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 				'mandatory' => true,
 				'multiple'  => true,
 				'tl_class'  => 'clr',
+			),
+			'sql'               => "mediumblob NULL",
+		),
+
+		'table_restrictions' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['table_restrictions'],
+			'inputType'         => 'checkbox',
+			'exclude'           => true,
+			'options'           => array('closed', 'notEditable', 'notSortable', 'notDeletable'),
+			'reference'         => &$GLOBALS['TL_LANG']['tl_workflow_service']['table_restrictions_options'],
+			'eval'              => array
+			(
+				'multiple'      => true,
+				'tl_class'      => 'clr',
 			),
 			'sql'               => "mediumblob NULL",
 		),

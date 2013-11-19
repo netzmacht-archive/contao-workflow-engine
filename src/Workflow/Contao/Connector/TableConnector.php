@@ -162,7 +162,9 @@ class TableConnector extends AbstractConnector
 	{
 		if(!$this->reachedChanged)
 		{
-			if($value != $this->controller->getCurrentModel()->getEntity()->getProperty($dc->field))
+			$entity = ModelFactory::byDc($dc);
+
+			if($this->controller->initialize($entity) && $value != $entity->getProperty($dc->field))
 			{
 				if($this->hasState('change'))
 				{
