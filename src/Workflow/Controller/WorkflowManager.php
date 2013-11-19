@@ -40,10 +40,10 @@ class WorkflowManager
 	/**
 	 * @param Controller $controller
 	 */
-	public function __construct(Controller $controller)
+	public function setController(Controller $controller)
 	{
 		$this->controller = $controller;
-		$this->driver     = $controller->getDataProvider('tl_worfklow');
+		$this->driver     = $controller->getDataProvider('tl_workflow');
 	}
 
 
@@ -60,11 +60,21 @@ class WorkflowManager
 	}
 
 
+	/**
+	 * Get assigned workflow for en entity
+	 *
+	 * If no workflow is found return null
+	 *
+	 * @param EntityInterface $entity
+	 * @return null|WorkflowInterface
+	 */
 	public function getAssignedWorkflow(EntityInterface $entity)
 	{
-		if(array_key_exists($entity->getId(), $this->entityWorkflows[$entity->getProviderName()]))
+		$table = $entity->getProviderName();
+
+		if(isset($this->entityWorkflows[$table]) && array_key_exists($entity->getId(), $this->entityWorkflows[$table]))
 		{
-			return $this->entityWorkflows[$entity->getProviderName()][$entity->getId()];
+			return $this->entityWorkflows[$table][$entity->getId()];
 		}
 
 		$types    = $this->getWorkflowTypes($entity);
@@ -79,13 +89,12 @@ class WorkflowManager
 		/** @var EntityInterface $workflowEntity */
 		foreach($this->loadWorkflows($types) as $workflowEntity)
 		{
-			$id = $workflowEntity->getId();
+			$id  = $workflowEntity->getId();
 
 			if(!isset($workflows[$id]))
 			{
 				$workflow = $this->createInstance($workflowEntity);
-				$workflow->setController($this->controller);
-				$workflow->initialize();
+				$this->controller->setCurrentWorkflow($workflow);
 
 				$this->workflows[$id] = $workflow;
 			}
@@ -98,6 +107,11 @@ class WorkflowManager
 					$priority = $this->workflows[$id]->getPriority($entity);
 				}
 			}
+		}
+
+		if($active)
+		{
+			$active->initialize();
 		}
 
 		$this->entityWorkflows[$entity->getProviderName()][$entity->getId()] = $active;

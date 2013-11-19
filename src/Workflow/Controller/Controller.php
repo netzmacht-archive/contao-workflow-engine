@@ -58,11 +58,13 @@ class Controller
 	 */
 	public function __construct(WorkflowManager $workflowManager, $driverManager, Registry $registry, EventDispatcher $eventDispatcher)
 	{
-		$this->workflowManager = $workflowManager;
 		$this->driverManager   = $driverManager;
 		$this->eventDispatcher = $eventDispatcher;
 		$this->registry        = $registry;
 
+		// DO NOT call setController before objects are assigned to controller
+		$this->workflowManager = $workflowManager;
+		$this->workflowManager->setController($this);
 		$this->workflowManager->bootstrap($this);
 	}
 
@@ -107,6 +109,16 @@ class Controller
 	public function getCurrentWorkflow()
 	{
 		return $this->currentWorkflow;
+	}
+
+
+	/**
+	 * @param WorkflowInterface $workflow
+	 */
+	public function setCurrentWorkflow(WorkflowInterface $workflow)
+	{
+		$this->currentWorkflow = $workflow;
+		$this->currentWorkflow->setController($this);
 	}
 
 

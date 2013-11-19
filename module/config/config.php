@@ -3,8 +3,9 @@
 /**
  * Hooks
  */
-$GLOBALS['TL_HOOKS']['loadDataContainer'][] = array('Workflow\Contao\Connector', 'hookLoadDataContainer');
+$GLOBALS['TL_HOOKS']['loadDataContainer'][] = array('Workflow\Contao\Bootstrap', 'hookLoadDataContainer');
 
+$GLOBALS['TL_EVENTS']['workflow.selectWorkflow'][] = array('Workflow\Contao\WorkflowSelector', 'selectWorkflow');
 
 /**
  * Tables which are disabled for workflows
@@ -43,6 +44,7 @@ $GLOBALS['TL_CONFIG']['workflow_disabledTables'] = array
  */
 $GLOBALS['TL_CONFIG']['workflow_disabledModules'] = array
 (
+	'workflow',
 	'settings',
 	'member',
 	'user',
@@ -123,11 +125,12 @@ array_insert($GLOBALS['BE_MOD'], 1, array
 
 		),
 
-		'workflow_settings' => array
+		'workflow' => array
 		(
 			'stylesheet' => 'system/modules/workflow/assets/css/style.css',
 			'tables' => array('tl_workflow', 'tl_workflow_process', 'tl_workflow_step', 'tl_workflow_service'),
-			'icon' => 'system/themes/default/images/settings.gif',
+			//'icon' => 'system/themes/default/images/settings.gif',
+			'icon'       => 'system/modules/workflow/assets/img/workflow.png',
 		),
 	),
 ));
@@ -139,3 +142,24 @@ array_insert($GLOBALS['BE_MOD'], 1, array
 $GLOBALS['TL_WORKFLOW_SERVICES']['notify']          = 'Workflow\Service\NotifyService';
 $GLOBALS['TL_WORKFLOW_SERVICES']['parent']          = 'Workflow\Service\ParentService';
 $GLOBALS['TL_WORKFLOW_SERVICES']['restrict-access'] = 'Workflow\Service\RestrictAccessService';
+
+
+$GLOBALS['TL_WORKFLOWS']['page'] = 'Workflow\Contao\Workflow\PageWorkflow';
+$GLOBALS['TL_WORKFLOWS']['news'] = 'Workflow\Contao\Workflow\NewsWorkflow';
+
+
+/**
+ * Workflow conditions
+ */
+$GLOBALS['TL_WORKFLOW_PARENTS']['tl_page'] = array
+(
+	'fields' => array('title', 'alias'),
+	'sorting' => 'title',
+	'format' => array('%s[%s ID %s]', array('title', 'alias', 'id')),
+);
+
+/*
+$GLOBALS['TL_WORKFLOW_CONDITIONS']['tl_content']         = 'Workflow\Contao\Conditions\Content';
+$GLOBALS['TL_WORKFLOW_CONDITIONS']['tl_news']            = 'Workflow\Contao\Conditions\News';
+$GLOBALS['TL_WORKFLOW_CONDITIONS']['tl_calendar_events'] = 'Workflow\Contao\Conditions\CalendarEvents';
+*/

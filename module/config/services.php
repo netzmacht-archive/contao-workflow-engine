@@ -25,7 +25,7 @@ $GLOBALS['container']['workflow.controller'] = $GLOBALS['container']->share(func
  * Workflow Manager
  */
 $GLOBALS['container']['workflow.workflow-manager'] = $GLOBALS['container']->share(function($c) {
-	return new \Workflow\Controller\WorkflowManager($c['dcatools.driver-manager']['workflow.controller']);
+	return new \Workflow\Controller\WorkflowManager();
 });
 
 

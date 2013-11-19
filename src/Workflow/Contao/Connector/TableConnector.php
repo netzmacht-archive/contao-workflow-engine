@@ -95,9 +95,9 @@ class TableConnector extends AbstractConnector
 	protected function initializeController()
 	{
 		/** @var \Workflow\Controller\Controller $controller */
-		$controller = $GLOBALS['container']['workflow.controller'];
+		$this->controller = $GLOBALS['container']['workflow.controller'];
 
-		$driver = $controller->getDataProvider($this->definition->getName());
+		$driver = $this->controller->getDataProvider($this->definition->getName());
 		$entity = null;
 
 		if($this->parentView)
@@ -113,7 +113,7 @@ class TableConnector extends AbstractConnector
 			if($this->id && $this->definition->get('config/ptable'))
 			{
 				$table  = $this->definition->get('config/ptable');
-				$driver = $controller->getDataProvider($table);
+				$driver = $this->controller->getDataProvider($table);
 				$entity = ConfigBuilder::create($driver)->setId($this->id)->fetch();
 			}
 		}
@@ -123,11 +123,7 @@ class TableConnector extends AbstractConnector
 
 		if($entity)
 		{
-			if($controller->initialize($entity))
-			{
-				$this->controller = $controller;
-				return true;
-			}
+			return $controller->initialize($entity);
 		}
 
 		return false;
@@ -235,11 +231,6 @@ class TableConnector extends AbstractConnector
 	public function callbackOnDelete($dc)
 	{
 		$entity = ModelFactory::byDc($dc);
-
-		if(!$this->controller)
-		{
-			$this->controller = $GLOBALS['container']['workflow.controller'];
-		}
 
 		if($this->controller->initialize($entity))
 		{

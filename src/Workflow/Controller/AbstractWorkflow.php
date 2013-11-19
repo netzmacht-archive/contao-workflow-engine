@@ -33,6 +33,12 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 
 
 	/**
+	 * @var bool
+	 */
+	protected $initialized = false;
+
+
+	/**
 	 * Construct
 	 *
 	 * @param EntityInterface $entity
@@ -61,6 +67,27 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 		$listener  = array(get_called_class(), 'listenerGetWorkflowType');
 
 		$controller->getEventDispatcher()->addListener($eventName, $listener);
+	}
+
+
+	/**
+	 * Initialize the workflow
+	 *
+	 * Will return false if workflow is already initialized
+	 *
+	 * @return bool
+	 */
+	public function initialize()
+	{
+		if(!$this->initialized)
+		{
+			$this->initializeServices();
+			$this->initialized = true;
+
+			return true;
+		}
+
+		return false;
 	}
 
 

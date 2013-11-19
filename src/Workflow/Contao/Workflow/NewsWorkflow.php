@@ -95,15 +95,6 @@ class NewsWorkflow extends AbstractWorkflow
 
 
 	/**
-	 * Initialize the workflow
-	 */
-	public function initialize()
-	{
-		$this->initializeServices();
-	}
-
-
-	/**
 	 * Consider whether model is assigned to workflow
 	 *
 	 * @param EntityInterface $entity
