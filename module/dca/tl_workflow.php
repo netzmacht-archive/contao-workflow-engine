@@ -175,7 +175,7 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 						'label'             => &$GLOBALS['TL_LANG']['tl_workflow']['table'],
 						'inputType'         => 'select',
 						'options_callback'  => array('Workflow\Contao\Dca\Workflow', 'getWorkflowTables'),
-						'eval'              => array('style' => 'width: 240px', 'submitOnChange' => true,),
+						'eval'              => array('style' => 'width: 200px', 'submitOnChange' => true,),
 					),
 
 					'process' => array
@@ -186,8 +186,17 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 						'eval'          => array
 						(
 							'includeBlankOption' => true,
-							'style' => 'width: 240px',
+							'style' => 'width: 200px',
 						),
+					),
+
+					'data' => array
+					(
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow']['data'],
+						'inputType'         => 'select',
+						'options'           => array(0, 1, 2, 3),
+						'reference'         => &$GLOBALS['TL_LANG']['tl_workflow']['saveData'],
+						'eval'              => array('style' => 'width: 160px'),
 					),
 
 				),

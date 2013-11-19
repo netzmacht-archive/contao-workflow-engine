@@ -35,5 +35,23 @@ $GLOBALS['TL_LANG']['tl_workflow']['table'][1] = 'Wählen Sie eine Tabelle aus.'
 $GLOBALS['TL_LANG']['tl_workflow']['process'][0] = 'Prozess';
 $GLOBALS['TL_LANG']['tl_workflow']['process'][1] = 'Wählen Sie einen Prozess aus, der für die Tabelle verwendet werden soll.';
 
-$GLOBALS['TL_LANG']['tl_workflow']['workflow'][0] = 'Typ auswählen';
+$GLOBALS['TL_LANG']['tl_workflow']['workflow'][0] = 'Typ';
 $GLOBALS['TL_LANG']['tl_workflow']['workflow'][1] = 'Wählen Sie einen installierten Workflow-Typ aus.';
+
+$GLOBALS['TL_LANG']['tl_workflow']['data'][0] = 'Speicherung';
+$GLOBALS['TL_LANG']['tl_workflow']['data'][1] = 'Welche Daten sollen pro Workflow-Schritt gespeichert werden.';
+
+/**
+ * Values
+ */
+$GLOBALS['TL_LANG']['tl_workflow']['saveData'][0][0] = 'nichts';
+$GLOBALS['TL_LANG']['tl_workflow']['saveData'][0][1] = 'Es werden keine Daten gespeichert.';
+
+$GLOBALS['TL_LANG']['tl_workflow']['saveData'][1][0] = 'Aktueller Datensatz';
+$GLOBALS['TL_LANG']['tl_workflow']['saveData'][1][1] = 'Der aktuelle Datensatz der Tabelle wird gespeichert.';
+
+$GLOBALS['TL_LANG']['tl_workflow']['saveData'][2][0] = 'Kinder-Datensätze';
+$GLOBALS['TL_LANG']['tl_workflow']['saveData'][2][1] = 'Die Kinder-Datensätze des aktuellen Datensatzes speichern.';
+
+$GLOBALS['TL_LANG']['tl_workflow']['saveData'][3][0] = 'Datensatz + Kinder';
+$GLOBALS['TL_LANG']['tl_workflow']['saveData'][3][1] = 'Sowohl aktuellen Datensatz sowie Kinder-Datensätze speichern.';

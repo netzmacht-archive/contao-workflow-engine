@@ -10,11 +10,24 @@ use DcGeneral\Data\ModelInterface as EntityInterface;
  */
 interface WorkflowInterface
 {
+
+	/**
+	 * Defines if workflow should handle the publishing process
+	 */
 	const PUBLISH_MODE_UNSUPPORTED = 0;
 
 	const PUBLISH_MODE_DEFAULT = 1;
 
 	const PUBLISH_MODE_INVERTED = 2;
+
+	/**
+	 * Are used to decide which data should be stored. DATA_ENTITY and DATA_CHILDREN can be combined
+	 */
+	const DATA_NONE = 0;
+
+	const DATA_ENTITY = 1;
+
+	const DATA_CHILDREN = 2;
 
 
 	/**

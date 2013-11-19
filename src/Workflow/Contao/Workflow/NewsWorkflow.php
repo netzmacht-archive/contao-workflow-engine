@@ -227,27 +227,35 @@ class NewsWorkflow extends AbstractWorkflow
 	 */
 	protected function getNewsWorkflowData(EntityInterface $entity)
 	{
-		$data = $entity->getPropertiesAsArray();
+		$data = array();
 
-		$driver  = $this->controller->getDataProvider('tl_content');
-		$builder = ConfigBuilder::create($driver)
-			->filterEquals('pid', $entity->getId())
-			->filterEquals('ptable', $entity->getProviderName())
-			->sorting('sorting');
-
-		/** @var EntityInterface $child */
-		foreach($builder->fetchAll() as $child)
+		if(($this->storeData[$entity->getProviderName()] & static::DATA_ENTITY) == static::DATA_ENTITY)
 		{
-			$model   = new Model($child, $this->controller);
-			$handler = $this->controller->getCurrentWorkflow()->getProcessHandler($child->getProviderName());
-			$state   = $handler->getCurrentState($model);
+			$data = $entity->getPropertiesAsArray();
+		}
 
-			if(!$state)
+		if(($this->storeData[$entity->getProviderName()] & static::DATA_CHILDREN) == static::DATA_CHILDREN)
+		{
+			$driver  = $this->controller->getDataProvider('tl_content');
+			$builder = ConfigBuilder::create($driver)
+				->filterEquals('pid', $entity->getId())
+				->filterEquals('ptable', $entity->getProviderName())
+				->sorting('sorting');
+
+			/** @var EntityInterface $child */
+			foreach($builder->fetchAll() as $child)
 			{
-				$state = $handler->start($model);
-			}
+				$model   = new Model($child, $this->controller);
+				$handler = $this->controller->getCurrentWorkflow()->getProcessHandler($child->getProviderName());
+				$state   = $handler->getCurrentState($model);
 
-			$data['_children']['tl_content'][] = $state->getId();
+				if(!$state)
+				{
+					$state = $handler->start($model);
+				}
+
+				$data['_children']['tl_content'][] = $state->getId();
+			}
 		}
 
 		return $data;
@@ -262,7 +270,12 @@ class NewsWorkflow extends AbstractWorkflow
 	 */
 	protected function getContentElementWorkflowData(EntityInterface $entity)
 	{
-		return $entity->getPropertiesAsArray();
+		if(($this->storeData[$entity->getProviderName()] & static::DATA_ENTITY) == static::DATA_ENTITY)
+		{
+			return $entity->getPropertiesAsArray();
+		}
+
+		return array();
 	}
 
 
@@ -274,24 +287,33 @@ class NewsWorkflow extends AbstractWorkflow
 	 */
 	protected function getNewsArchiveWorkflowData(EntityInterface $entity)
 	{
-		$data    = $entity->getPropertiesAsArray();
-		$driver  = $this->controller->getDataProvider('tl_news');
-		$builder = ConfigBuilder::create($driver)
-			->filterEquals('pid', $entity->getId());
+		$data = array();
 
-		/** @var EntityInterface $news */
-		foreach($builder->fetchAll() as $news)
+		if(($this->storeData[$entity->getProviderName()] & static::DATA_ENTITY) == static::DATA_ENTITY)
 		{
-			$model   = new Model($news, $this->controller);
-			$handler = $this->controller->getCurrentWorkflow()->getProcessHandler($news->getProviderName());
-			$state   = $handler->getCurrentState($model);
+			$data    = $entity->getPropertiesAsArray();
+		}
 
-			if(!$state)
+		if(($this->storeData[$entity->getProviderName()] & static::DATA_CHILDREN) == static::DATA_CHILDREN)
+		{
+			$driver  = $this->controller->getDataProvider('tl_news');
+			$builder = ConfigBuilder::create($driver)
+				->filterEquals('pid', $entity->getId());
+
+			/** @var EntityInterface $news */
+			foreach($builder->fetchAll() as $news)
 			{
-				$state = $handler->start($model);
-			}
+				$model   = new Model($news, $this->controller);
+				$handler = $this->controller->getCurrentWorkflow()->getProcessHandler($news->getProviderName());
+				$state   = $handler->getCurrentState($model);
 
-			$data['_children']['tl_news'][] = $state->getId();
+				if(!$state)
+				{
+					$state = $handler->start($model);
+				}
+
+				$data['_children']['tl_news'][] = $state->getId();
+			}
 		}
 
 		return $data;

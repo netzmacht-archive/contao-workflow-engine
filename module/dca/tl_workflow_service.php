@@ -33,9 +33,9 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 		(
 			'mode' => 4,
 			'flag' => 1,
-			'headerFields'  => array('title', 'forModule', 'forTable', 'process', 'active'),
+			'headerFields'  => array('title', 'workflow'),
 			'panelLayout'   => 'sort,filter;search,limit',
-			'fields' => array('name'),
+			'fields' => array('tableName', 'service'),
 			'child_record_callback' => array('Workflow\Contao\Dca\Service', 'generateChildRecord'),
 		),
 

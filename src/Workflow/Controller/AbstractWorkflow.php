@@ -31,6 +31,10 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 	 */
 	protected $processes = array();
 
+	/**
+	 * @var array
+	 */
+	protected $storeData = array();
 
 	/**
 	 * @var bool
@@ -52,6 +56,7 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 		foreach($processes as $process)
 		{
 			$this->processes[$process['table']] = $process['process'];
+			$this->storeData[$process['table']] = (int) $process['data'];
 		}
 	}
 
