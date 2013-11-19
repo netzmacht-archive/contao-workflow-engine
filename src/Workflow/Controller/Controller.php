@@ -4,6 +4,7 @@ namespace Workflow\Controller;
 
 use DcGeneral\Data\ModelInterface as EntityInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Workflow\Entity\Registry;
 use Workflow\Event\WorkflowTypeEvent;
 use Workflow\Model\Model;
 use Workflow\Model\ModelInterface;
@@ -36,7 +37,6 @@ class Controller
 	 */
 	protected $currentWorkflow;
 
-
 	/**
 	 * @var \Workflow\Model\ModelInterface[]
 	 */
@@ -51,13 +51,15 @@ class Controller
 	/**
 	 * @param WorkflowManager $workflowManager
 	 * @param \DcaTools\Data\DriverManagerInterface $driverManager
+	 * @param Registry $registry
 	 * @param EventDispatcher $eventDispatcher
 	 */
-	public function __construct(WorkflowManager $workflowManager, $driverManager, EventDispatcher $eventDispatcher)
+	public function __construct(WorkflowManager $workflowManager, $driverManager, Registry $registry, EventDispatcher $eventDispatcher)
 	{
 		$this->workflowManager = $workflowManager;
 		$this->driverManager   = $driverManager;
 		$this->eventDispatcher = $eventDispatcher;
+		$this->registry        = $registry;
 
 		$this->workflowManager->bootstrap($this);
 	}

@@ -12,6 +12,7 @@ use DcaTools\Data\ConfigBuilder;
 use DcGeneral\Data\DriverInterface;
 use DcGeneral\Data\ModelInterface as EntityInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Workflow\Entity\Registry;
 use Workflow\Entity\Workflow;
 use Workflow\Event\SelectWorkflowEvent;
 use Workflow\Exception\WorkflowException;
@@ -31,6 +32,12 @@ class WorkflowManager
 
 
 	/**
+	 * @var \Workflow\Entity\Registry
+	 */
+	protected $registry;
+
+
+	/**
 	 * @var \Symfony\Component\EventDispatcher\EventDispatcher
 	 */
 	protected $eventDispatcher;
@@ -38,11 +45,13 @@ class WorkflowManager
 
 	/**
 	 * @param DriverInterface $driver
+	 * @param Registry $registry
 	 * @param EventDispatcher $eventDispatcher
 	 */
-	public function __construct(DriverInterface $driver, EventDispatcher $eventDispatcher)
+	public function __construct(DriverInterface $driver, Registry $registry, EventDispatcher $eventDispatcher)
 	{
 		$this->driver = $driver;
+		$this->registry = $registry;
 		$this->eventDispatcher = $eventDispatcher;
 	}
 
