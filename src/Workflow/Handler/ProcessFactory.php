@@ -147,7 +147,8 @@ class ProcessFactory
 		$roles      = deserialize($stepConfig['roles'], true);
 		$onInvalid  = $stepConfig['invalid'] ?: null;
 
-		$step = new Step($stepConfig['name'], $stepConfig['label'], array(), array('setStatus', $stepConfig['name']), $roles, $onInvalid);
+		// array('setStatus', $stepConfig['name'])
+		$step = new Step($stepConfig['name'], $stepConfig['label'], array(), array(), $roles, $onInvalid);
 		$steps[$stepConfig['name']] = $step;
 
 		foreach($nextStates as $state)
