@@ -9,21 +9,27 @@
 namespace Workflow\Controller;
 
 use DcaTools\Data\ConfigBuilder;
-use DcGeneral\Data\DriverInterface;
 use DcGeneral\Data\ModelInterface as EntityInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Workflow\Entity\Registry;
-use Workflow\Entity\Workflow;
-use Workflow\Event\SelectWorkflowEvent;
+use Workflow\Event\WorkflowTypeEvent;
 use Workflow\Exception\WorkflowException;
 
 class WorkflowManager
 {
 
 	/**
-	 * @var Workflow[]
+	 * @var WorkflowInterface[]
 	 */
 	protected $workflows = array();
+
+	/**
+	 * @var array
+	 */
+	protected $entityWorkflows = array();
+
+	/**
+	 * @var Controller
+	 */
+	protected $controller;
 
 	/**
 	 * @var \DcGeneral\Data\DriverInterface
@@ -32,37 +38,71 @@ class WorkflowManager
 
 
 	/**
-	 * @var \Workflow\Entity\Registry
+	 * @param Controller $controller
 	 */
-	protected $registry;
-
-
-	/**
-	 * @var \Symfony\Component\EventDispatcher\EventDispatcher
-	 */
-	protected $eventDispatcher;
-
-
-	/**
-	 * @param DriverInterface $driver
-	 * @param Registry $registry
-	 * @param EventDispatcher $eventDispatcher
-	 */
-	public function __construct(DriverInterface $driver, Registry $registry, EventDispatcher $eventDispatcher)
+	public function __construct(Controller $controller)
 	{
-		$this->driver = $driver;
-		$this->registry = $registry;
-		$this->eventDispatcher = $eventDispatcher;
+		$this->controller = $controller;
+		$this->driver     = $controller->getDataProvider('tl_worfklow');
 	}
 
 
-	public function bootstrap(Controller $controller)
+	/**
+	 * Bootstrap all available workflows
+	 */
+	public function bootstrap()
 	{
 		/** @var \Workflow\Controller\WorkflowInterface $workflow */
 		foreach($GLOBALS['TL_WORKFLOWS'] as $workflow)
 		{
-			$workflow::bootstrap($controller);
+			$workflow::bootstrap($this->controller);
 		}
+	}
+
+
+	public function getAssignedWorkflow(EntityInterface $entity)
+	{
+		if(array_key_exists($entity->getId(), $this->entityWorkflows[$entity->getProviderName()]))
+		{
+			return $this->entityWorkflows[$entity->getProviderName()][$entity->getId()];
+		}
+
+		$types    = $this->getWorkflowTypes($entity);
+		$active   = null;
+		$priority = null;
+
+		if(!count($types))
+		{
+			return $active;
+		}
+
+		/** @var EntityInterface $workflowEntity */
+		foreach($this->loadWorkflows($types) as $workflowEntity)
+		{
+			$id = $workflowEntity->getId();
+
+			if(!isset($workflows[$id]))
+			{
+				$workflow = $this->createInstance($workflowEntity);
+				$workflow->setController($this->controller);
+				$workflow->initialize();
+
+				$this->workflows[$id] = $workflow;
+			}
+
+			if($this->workflows[$id]->isAssigned($entity))
+			{
+				if(!$active || $priority === null || $priority > $this->workflows[$id]->getPriority($entity))
+				{
+					$active   = $this->workflows[$id];
+					$priority = $this->workflows[$id]->getPriority($entity);
+				}
+			}
+		}
+
+		$this->entityWorkflows[$entity->getProviderName()][$entity->getId()] = $active;
+
+		return $active;
 	}
 
 
@@ -72,7 +112,7 @@ class WorkflowManager
 	 * @return \Workflow\Controller\WorkflowInterface
 	 * @throws \Workflow\Exception\WorkflowException
 	 */
-	public function create(EntityInterface $entity)
+	protected function createInstance(EntityInterface $entity)
 	{
 		$type = $entity->getProperty('workflow');
 
@@ -88,24 +128,15 @@ class WorkflowManager
 
 	/**
 	 * @param EntityInterface $entity
-	 *
-	 * @return EntityInterface
+	 * @return array
 	 */
-	public function getWorkflow(EntityInterface $entity)
+	protected function getWorkflowTypes(EntityInterface $entity)
 	{
-		$workflows = $this->loadWorkflows($entity->getProviderName());
+		$eventName = 'workflow.controller.get-workflow-types';
+		$event     = new WorkflowTypeEvent($entity);
 
-		$event = new SelectWorkflowEvent($workflows, $entity);
-		$this->eventDispatcher->dispatch('workflow.selectWorkflow', $event);
-
-		$workflow = $event->getSelectedWorkflow();
-
-		if($workflow)
-		{
-			return new Workflow($workflow);
-		}
-
-		return null;
+		$this->controller->getEventDispatcher()->dispatch($eventName, $event);
+		return $event->getTypes();
 	}
 
 
@@ -114,7 +145,7 @@ class WorkflowManager
 	 *
 	 * @return \DcGeneral\Data\CollectionInterface
 	 */
-	public function loadWorkflows(array $types)
+	protected function loadWorkflows(array $types)
 	{
 		return ConfigBuilder::create($this->driver)
 			->filterIn('workflow', $types)

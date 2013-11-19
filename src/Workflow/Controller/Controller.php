@@ -5,11 +5,23 @@ namespace Workflow\Controller;
 use DcGeneral\Data\ModelInterface as EntityInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Workflow\Entity\Registry;
-use Workflow\Event\WorkflowTypeEvent;
 use Workflow\Model\Model;
 use Workflow\Model\ModelInterface;
 
-
+/**
+ * Controller is used for loading workflow of an entity.
+ *
+ * There should not be an call to the controller without calling the initialize method because workflow service
+ * can assign another current model. Always use like this:
+ *
+ * if($controller->initialize($entity))
+ * {
+ *     $controller->reachNextState('published');
+ * }
+ *
+ * @package Workflow\Controller
+ * @author David Molineus <molineus@netzmacht.de>
+ */
 class Controller
 {
 	/**
@@ -37,16 +49,6 @@ class Controller
 	 */
 	protected $currentWorkflow;
 
-	/**
-	 * @var \Workflow\Model\ModelInterface[]
-	 */
-	protected $models = array();
-
-	/**
-	 * @var \Workflow\Controller\WorkflowInterface[]
-	 */
-	protected $workflows = array();
-
 
 	/**
 	 * @param WorkflowManager $workflowManager
@@ -71,27 +73,22 @@ class Controller
 	 */
 	public function initialize(EntityInterface $entity)
 	{
-		if(!isset($this->models[$entity->getProviderName()][$entity->getId()]))
+		$this->currentModel    = new Model($entity, $this);
+		$this->currentWorkflow = $this->workflowManager->getAssignedWorkflow($entity);
+
+		if($this->currentWorkflow)
 		{
-			$this->currentModel = new Model($entity, $this);
-
-			if(!$this->initializeWorkflow($this->currentModel))
-			{
-				return false;
-			}
-
 			$state = $this->getProcessHandler()->getCurrentState($this->currentModel);
 
 			if(!$state)
 			{
 				$this->getProcessHandler()->start($this->currentModel);
 			}
+
+			return true;
 		}
 
-		$this->currentModel    = $this->models[$entity->getProviderName()][$entity->getId()]['model'];
-		$this->currentWorkflow = $this->models[$entity->getProviderName()][$entity->getId()]['workflow'];
-
-		return true;
+		return false;
 	}
 
 
@@ -161,88 +158,11 @@ class Controller
 
 
 	/**
-	 * Initialize all matched workflows
-	 *
-	 * @param ModelInterface $model
-	 * @return bool
+	 * @return Registry
 	 */
-	protected function initializeWorkflow(ModelInterface $model)
+	public function getEntityRegistry()
 	{
-		$tableName  = $model->getEntity()->getProviderName();
-		$tableId    = $model->getEntity()->getId();
-		$workflow   = $this->getAssignedWorkflow($model->getEntity());
-
-		if($workflow)
-		{
-			$workflowId = $workflow->getEntity()->getId();
-
-			$this->models[$tableName][$tableId] = array
-			(
-				'model'    => $model,
-				'workflow' => $workflow,
-			);
-
-			$this->currentWorkflow = $workflow;
-
-			if(!isset($this->workflows[$workflowId]))
-			{
-				$this->workflows[$workflowId] = $workflow;
-
-				$workflow->initialize();
-			}
-
-			return true;
-		}
-
-		return false;
-	}
-
-
-	/**
-	 * @param EntityInterface $entity
-	 * @return \Workflow\Controller\WorkflowInterface
-	 */
-	protected function getAssignedWorkflow(EntityInterface $entity)
-	{
-		$types    = $this->getWorkflowTypes($entity);
-		$active   = null;
-		$priority = null;
-
-		if(!count($types))
-		{
-			return $active;
-		}
-
-		foreach($this->workflowManager->loadWorkflows($types) as $workflow)
-		{
-			$workflow = $this->workflowManager->create($workflow);
-			$workflow->setController($this);
-
-			if($workflow->isAssigned($entity))
-			{
-				if(!$active || $priority === null || $priority > $workflow->getPriority($entity))
-				{
-					$active = $workflow;
-					$priority = $workflow->getPriority($entity);
-				}
-			}
-		}
-
-		return $active;
-	}
-
-
-	/**
-	 * @param EntityInterface $entity
-	 * @return array
-	 */
-	protected function getWorkflowTypes(EntityInterface $entity)
-	{
-		$eventName = 'workflow.controller.get-workflow-types';
-		$event     = new WorkflowTypeEvent($entity);
-
-		$this->eventDispatcher->dispatch($eventName, $event);
-		return $event->getTypes();
+		return $this->registry;
 	}
 
 }
