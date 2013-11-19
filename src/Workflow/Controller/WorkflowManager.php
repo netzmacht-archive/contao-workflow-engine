@@ -126,7 +126,7 @@ class WorkflowManager
 	 * @return \Workflow\Controller\WorkflowInterface
 	 * @throws \Workflow\Exception\WorkflowException
 	 */
-	protected function createInstance(EntityInterface $entity)
+	public function createInstance(EntityInterface $entity)
 	{
 		$type = $entity->getProperty('workflow');
 

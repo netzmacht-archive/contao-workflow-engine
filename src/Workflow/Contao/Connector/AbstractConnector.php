@@ -38,6 +38,7 @@ abstract class AbstractConnector implements ConnectorInterface
 	 */
 	protected $definition;
 
+
 	/**
 	 * @var \Workflow\Controller\Controller
 	 */

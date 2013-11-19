@@ -4,6 +4,7 @@
  * Hooks
  */
 $GLOBALS['TL_HOOKS']['loadDataContainer'][] = array('Workflow\Contao\Bootstrap', 'hookLoadDataContainer');
+$GLOBALS['TL_HOOKS']['initializeSystem'][]  = array('Workflow\Contao\Bootstrap', 'hookInitializeSystem');
 
 $GLOBALS['TL_EVENTS']['workflow.selectWorkflow'][] = array('Workflow\Contao\WorkflowSelector', 'selectWorkflow');
 

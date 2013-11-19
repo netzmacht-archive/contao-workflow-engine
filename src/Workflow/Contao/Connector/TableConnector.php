@@ -94,7 +94,6 @@ class TableConnector extends AbstractConnector
 	 */
 	protected function initializeController()
 	{
-		/** @var \Workflow\Controller\Controller $controller */
 		$this->controller = $GLOBALS['container']['workflow.controller'];
 
 		$driver = $this->controller->getDataProvider($this->definition->getName());
@@ -123,7 +122,7 @@ class TableConnector extends AbstractConnector
 
 		if($entity)
 		{
-			return $controller->initialize($entity);
+			return $this->controller->initialize($entity);
 		}
 
 		return false;
@@ -161,7 +160,7 @@ class TableConnector extends AbstractConnector
 	 */
 	public function callbackSave($value, $dc)
 	{
-		if($this->controller && !$this->reachedChanged)
+		if(!$this->reachedChanged)
 		{
 			if($value != $this->controller->getCurrentModel()->getEntity()->getProperty($dc->field))
 			{
@@ -181,11 +180,13 @@ class TableConnector extends AbstractConnector
 	 * If next step is reached we have to update the workflow model data because DC_Table does not provide a
 	 * callback for getting validated record before storing it
 	 */
-	public function callbackOnSubmit()
+	public function callbackOnSubmit($dc)
 	{
-		if($this->controller && $this->reachedChanged)
+		$entity = ModelFactory::byDc($dc);
+
+		if($this->reachedChanged && $this->controller->initialize($entity))
 		{
-			$state = $this->controller->getCurrentState($this->controller->getCurrentModel());
+			$state = $this->controller->getCurrentState();
 			$state->setData($this->controller->getCurrentModel()->getWorkflowData());
 
 			$driver = $this->controller->getDataProvider('tl_workflow_state');

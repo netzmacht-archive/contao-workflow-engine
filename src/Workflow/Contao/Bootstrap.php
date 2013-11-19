@@ -21,7 +21,8 @@ class Bootstrap
 		/** @var \Pimple $container */
 		global $container;
 
-		if(!in_array(\Input::get('do'), $GLOBALS['TL_CONFIG']['workflow_disabledModules']) &&
+		if($name == \Input::get('table') &&
+			!in_array(\Input::get('do'), $GLOBALS['TL_CONFIG']['workflow_disabledModules']) &&
 			!in_array($name, $GLOBALS['TL_CONFIG']['workflow_disabledTables'])
 		) {
 			try {
@@ -42,6 +43,28 @@ class Bootstrap
 			}
 			catch(\Exception $e) {
 				\Controller::log($e->getMessage(), '\Workflow\Contao\Connector hookLoadDataContainer()', TL_ERROR);
+			}
+		}
+	}
+
+
+	/**
+	 * We have to assign workflow module for every module which is not disabled because it's not possible to do this
+	 * before Contao 3.2 in hookLoadDataContainer
+	 *
+	 * @see https://github.com/contao/core/issues/5915
+	 */
+	public function hookInitializeSystem()
+	{
+		foreach($GLOBALS['BE_MOD'] as $group => $modules)
+		{
+			foreach($modules as $module => $config)
+			{
+				if($module == \Input::get('do'))
+				{
+					$GLOBALS['BE_MOD'][$group][$module]['workflow'] = array('Workflow\Contao\WorkflowModule', 'execute');
+					return;
+				}
 			}
 		}
 	}
