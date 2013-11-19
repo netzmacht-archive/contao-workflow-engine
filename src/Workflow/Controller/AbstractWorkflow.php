@@ -172,4 +172,43 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 		}
 	}
 
+
+	/**
+	 * @return \Workflow\Entity\Registry
+	 */
+	protected function getEntityRegistry()
+	{
+		return $this->controller->getEntityRegistry();
+	}
+
+
+	/**
+	 * Load parent if possible from the registry
+	 *
+	 * @param EntityInterface $entity
+	 * @return EntityInterface|mixed
+	 */
+	protected function loadParent(EntityInterface $entity)
+	{
+		$config = $this->getConfig($entity->getProviderName());
+		$table  = $config['parent'];
+		$driver = $this->controller->getDataProvider($table);
+
+		if($this->getEntityRegistry()->hasEntity($table, $entity->getProperty('pid')))
+		{
+			$parent = $this->getEntityRegistry()->getEntity($table, $entity->getProperty('pid'));
+		}
+		else
+		{
+			$parent = ConfigBuilder::create($driver)->setId($entity->getProperty('pid'))->fetch();
+
+			if($parent)
+			{
+				$this->getEntityRegistry()->addEntity($parent);
+			}
+		}
+
+		return $parent;
+	}
+
 }

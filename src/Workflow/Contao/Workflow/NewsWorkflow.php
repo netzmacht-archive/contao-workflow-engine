@@ -5,7 +5,6 @@ namespace Workflow\Contao\Workflow;
 use DcaTools\Data\ConfigBuilder;
 use DcaTools\Definition;
 use DcGeneral\Data\ModelInterface as EntityInterface;
-use Workflow\Controller\Controller;
 use Workflow\Controller\AbstractWorkflow;
 use Workflow\Event\WorkflowTypeEvent;
 use Workflow\Model\Model;
@@ -105,17 +104,6 @@ class NewsWorkflow extends AbstractWorkflow
 
 
 	/**
-	 * Get workflow entity
-	 *
-	 * @return EntityInterface
-	 */
-	public function getEntity()
-	{
-		return $this->workflow;
-	}
-
-
-	/**
 	 * Consider whether model is assigned to workflow
 	 *
 	 * @param EntityInterface $entity
@@ -165,12 +153,7 @@ class NewsWorkflow extends AbstractWorkflow
 	 */
 	protected function isNewsAssigned(EntityInterface $entity)
 	{
-		$driver = $this->controller->getDataProvider('tl_news_archive');
-
-		$page = ConfigBuilder::create($driver)
-			->fields('workflow', 'addWorkflow')
-			->setId($entity->getProperty('pid'))
-			->fetch();
+		$page = $this->loadParent($entity);
 
 		if($page)
 		{
@@ -189,16 +172,11 @@ class NewsWorkflow extends AbstractWorkflow
 	 */
 	protected function isContentElementAssigned(EntityInterface $entity)
 	{
-		$driver = $this->controller->getDataProvider('tl_news');
+		$news = $this->loadParent($entity);
 
-		$article = ConfigBuilder::create($driver)
-			->field('pid')
-			->setId($entity->getProperty('pid'))
-			->fetch();
-
-		if($article)
+		if($news)
 		{
-			return $this->isNewsAssigned($article);
+			return $this->isNewsAssigned($news);
 		}
 
 		return false;
