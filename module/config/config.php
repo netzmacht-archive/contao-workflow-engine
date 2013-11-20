@@ -110,28 +110,22 @@ $GLOBALS['TL_CONFIG']['workflow_roles'] = array
 
 
 /**
- * Add draft table to defined backend module
- */
-$GLOBALS['BE_MOD']['content']['article']['tables'][] = 'tl_workflow_draft';
-
-/**
  * Workflow backend module
  */
 array_insert($GLOBALS['BE_MOD'], 1, array
 (
 	'workflow' => array
 	(
-		'workflow_draft' => array
+		'workflow_history' => array
 		(
-			'tables' => array('tl_workflow_draft'),
-
+			'tables'     => array('tl_workflow_state'),
+			'icon'       => 'system/modules/workflow/assets/img/history.png',
 		),
 
-		'workflow' => array
+		'workflow_settings' => array
 		(
 			'stylesheet' => 'system/modules/workflow/assets/css/style.css',
-			'tables' => array('tl_workflow', 'tl_workflow_process', 'tl_workflow_step', 'tl_workflow_service'),
-			//'icon' => 'system/themes/default/images/settings.gif',
+			'tables'     => array('tl_workflow', 'tl_workflow_process', 'tl_workflow_step', 'tl_workflow_service'),
 			'icon'       => 'system/modules/workflow/assets/img/workflow.png',
 		),
 	),
@@ -147,22 +141,5 @@ $GLOBALS['TL_WORKFLOW_SERVICES']['table-restrictions']  = 'Workflow\Service\Tabl
 //$GLOBALS['TL_WORKFLOW_SERVICES']['restrict-access'] = 'Workflow\Service\RestrictAccessService';
 
 
-$GLOBALS['TL_WORKFLOWS']['page'] = 'Workflow\Contao\Workflow\PageWorkflow';
+//$GLOBALS['TL_WORKFLOWS']['page'] = 'Workflow\Contao\Workflow\PageWorkflow';
 $GLOBALS['TL_WORKFLOWS']['news'] = 'Workflow\Contao\Workflow\NewsWorkflow';
-
-
-/**
- * Workflow conditions
- */
-$GLOBALS['TL_WORKFLOW_PARENTS']['tl_page'] = array
-(
-	'fields' => array('title', 'alias'),
-	'sorting' => 'title',
-	'format' => array('%s[%s ID %s]', array('title', 'alias', 'id')),
-);
-
-/*
-$GLOBALS['TL_WORKFLOW_CONDITIONS']['tl_content']         = 'Workflow\Contao\Conditions\Content';
-$GLOBALS['TL_WORKFLOW_CONDITIONS']['tl_news']            = 'Workflow\Contao\Conditions\News';
-$GLOBALS['TL_WORKFLOW_CONDITIONS']['tl_calendar_events'] = 'Workflow\Contao\Conditions\CalendarEvents';
-*/

@@ -12,7 +12,8 @@ $GLOBALS['TL_LANG']['workflow']['services']['storage'][1] = 'Speichert den jewei
 $GLOBALS['TL_LANG']['workflow']['services']['parent'][0] = 'Workflow des Eltern-Datensatzes';
 $GLOBALS['TL_LANG']['workflow']['services']['parent'][1] = 'Der Workflow des Elterndatensatzes wird verwendet. Dies ist beispielsweise für Inhaltselemente sinnvoll.';
 
-
+$GLOBALS['TL_LANG']['workflow']['types']['news'][0] = 'Nachrichten';
+$GLOBALS['TL_LANG']['workflow']['types']['news'][1] = 'Workflow für Nachrichten-Modul anlegen.';
 
 /**
  * steps
