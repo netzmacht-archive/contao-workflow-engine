@@ -150,6 +150,7 @@ $GLOBALS['TL_DCA']['tl_workflow'] = array
 			'label'            => &$GLOBALS['TL_LANG']['tl_workflow']['workflow'],
 			'inputType'        => 'select',
 			'options_callback' => array('Workflow\Contao\Dca\Workflow', 'getWorkflowTypes'),
+			'reference'        => &$GLOBALS['TL_LANG']['workflow']['types'],
 			'eval' => array
 			(
 				'includeBlankOption' => true,

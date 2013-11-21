@@ -11,7 +11,6 @@ namespace Workflow\Service;
 use DcaTools\Definition;
 use DcaTools\Event\Listener\DataContainer;
 use DcaTools\Event\PermissionEvent;
-use DcGeneral\Data\ModelInterface as EntityInterface;
 
 class TableRestrictions extends AbstractService
 {
@@ -22,7 +21,7 @@ class TableRestrictions extends AbstractService
 		'config'    => array
 		(
 			'scope'  => array('steps', 'roles'),
-			'config' => array('table_restrictions'),
+			'config' => array('table_restrictions', 'table_operations', 'table_globalOperations'),
 		),
 	);
 
@@ -35,56 +34,36 @@ class TableRestrictions extends AbstractService
 	 */
 	function initialize()
 	{
-		$table  = $this->service->getProperty('tableName');
-		$roles  = deserialize($this->service->getProperty('roles'), true);
-		$steps  = deserialize($this->service->getProperty('steps'), true);
-		$config = 'workflow_' . $this->controller->getProcessHandler()->getProcess()->getName();
-
-		/** @var \BackendUser $user */
-		$user   = \BackendUser::getInstance();
-
-		if(!$user->hasAccess($roles, $config))
+		if(!$this->applyService())
 		{
-			return false;
-		}
-
-		$state = $this->controller->getProcessHandler()->getCurrentState($this->controller->getCurrentModel());
-
-		if($state && !in_array($state->getStepName(), $steps))
-		{
-			return false;
+			return;
 		}
 
 		$definition   = Definition::getDataContainer($this->service->getProperty('tableName'));
 		$this->restrictions = deserialize($this->service->getProperty('table_restrictions'), true);
 
 		$definition->set('config/closed', $this->check('closed'));
+		$definition->set('config/notDeletable', $this->check('notDeletable'));
+		$definition->set('config/notEditable', $this->check('notEditable'));
+		$definition->set('config/notSortable', $this->check('notEditable'));
 
-		if($this->check('notDeletable'))
+		$operations = deserialize($this->service->getProperty('table_operations'), true);
+
+		foreach($operations as $operation)
 		{
-			$definition->set('config/notDeletable', true);
-
-			if($definition->hasOperation('delete'))
+			if($definition->hasOperation($operation))
 			{
-				$definition->getOperation('delete')->remove();
+				$definition->getOperation($operation)->remove();
 			}
 		}
 
-		if($this->check('notEditable'))
+		$operations = deserialize($this->service->getProperty('table_globalOperations'), true);
+
+		foreach($operations as $operation)
 		{
-			$definition->set('config/notEditable', true);
-
-			foreach($definition->getOperations() as $operation)
+			if($definition->hasOperation($operation, 'global'))
 			{
-				if($operation->getName() != 'show')
-				{
-					$operation->remove();
-				}
-			}
-
-			foreach($definition->getOperations('global') as $operation)
-			{
-				$operation->remove();
+				$definition->getOperation($operation, 'global')->remove();
 			}
 		}
 
@@ -114,6 +93,35 @@ class TableRestrictions extends AbstractService
 	protected function check($restriction)
 	{
 		return in_array($restriction, $this->restrictions);
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	protected function applyService()
+	{
+		$table  = $this->service->getProperty('tableName');
+		$roles  = deserialize($this->service->getProperty('roles'), true);
+		$steps  = deserialize($this->service->getProperty('steps'), true);
+		$config = 'workflow_' . $this->controller->getCurrentWorkflow()->getProcessHandler($table)->getProcess()->getName();
+
+		/** @var \BackendUser $user */
+		$user   = \BackendUser::getInstance();
+
+		if(!$user->hasAccess($roles, $config))
+		{
+			return false;
+		}
+
+		$state = $this->controller->getCurrentWorkflow()->getProcessHandler($table)->getCurrentState($this->controller->getCurrentModel());
+
+		if($state && !in_array($state->getStepName(), $steps))
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 }

@@ -195,6 +195,47 @@ class Service extends Generic
 	}
 
 
+	public function getOperations()
+	{
+		$operations = array();
+
+		if($this->entity->getProperty('tableName'))
+		{
+			$definition = Definition::getDataContainer($this->entity->getProperty('tableName'));
+
+			foreach($definition->getOperations() as $operation)
+			{
+				$label = $operation->getLabel();
+				$operations[$operation->getName()] = $label[0];
+			}
+		}
+
+		return $operations;
+	}
+
+
+	/**
+	 * @return array
+	 */
+	public function getGlobalOperations()
+	{
+		$operations = array();
+
+		if($this->entity->getProperty('tableName'))
+		{
+			$definition = Definition::getDataContainer($this->entity->getProperty('tableName'));
+
+			foreach($definition->getOperations('global') as $operation)
+			{
+				$label = $operation->getLabel();
+				$operations[$operation->getName()] = $label[0] ?: $operation->getName();
+			}
+		}
+
+		return $operations;
+	}
+
+
 	/**
 	 * @param $process
 	 * @return \Workflow\Flow\Process

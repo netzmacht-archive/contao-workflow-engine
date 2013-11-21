@@ -286,6 +286,34 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			'sql'               => "mediumblob NULL",
 		),
 
+		'table_operations' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['table_operations'],
+			'inputType'         => 'checkbox',
+			'exclude'           => true,
+			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getOperations'),
+			'eval'              => array
+			(
+				'multiple'      => true,
+				'tl_class'      => 'clr',
+			),
+			'sql'               => "mediumblob NULL",
+		),
+
+		'table_globalOperations' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['table_globalOperations'],
+			'inputType'         => 'checkbox',
+			'exclude'           => true,
+			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getGlobalOperations'),
+			'eval'              => array
+			(
+				'multiple'      => true,
+				'tl_class'      => 'clr',
+			),
+			'sql'               => "mediumblob NULL",
+		),
+
 		'notify_email' => array
 		(
 			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['notify_email'],
