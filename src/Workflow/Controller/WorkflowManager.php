@@ -94,6 +94,7 @@ class WorkflowManager
 			if(!isset($workflows[$id]))
 			{
 				$workflow = $this->createInstance($workflowEntity);
+				$workflow->setController($this->controller);
 				$this->workflows[$id] = $workflow;
 			}
 
