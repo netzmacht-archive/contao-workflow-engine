@@ -162,8 +162,9 @@ class ProcessFactory
 				}
 				elseif(!isset($steps[$stepsConfig[$state['target']]['name']]))
 				{
-					$steps[$state['target']] = static::createStep($stepsConfig[$state['target']], $steps, $stepsConfig);
-					$target = $steps[$state['target']];
+					$name = $stepsConfig[$state['target']]['name'];
+					$steps[$name] = static::createStep($stepsConfig[$state['target']], $steps, $stepsConfig);
+					$target = $steps[$name];
 				}
 				else {
 					$target = $steps[$stepsConfig[$state['target']]['name']];
