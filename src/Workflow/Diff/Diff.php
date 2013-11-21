@@ -23,7 +23,6 @@ class Diff
 	 */
 	protected $b;
 
-
 	/**
 	 * @var array
 	 */
@@ -68,6 +67,32 @@ class Diff
 	public function hasChanges()
 	{
 		return static::sameEntities($this->a, $this->b, $this->options['ignore']);
+	}
+
+
+	/**
+	 * Get Changed properties from B
+	 *
+	 * @return array
+	 */
+	public function getChangedProperties()
+	{
+		$properties = array();
+
+		foreach($this->a as $property => $value)
+		{
+			if(in_array($property, $this->options['ignore']))
+			{
+				continue;
+			}
+
+			if($value !== $this->b->getProperty($property))
+			{
+				$properties[$property] = $this->b->getProperty($property);
+			}
+		}
+
+		return $properties;
 	}
 
 
