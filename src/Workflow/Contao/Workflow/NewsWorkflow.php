@@ -251,7 +251,12 @@ class NewsWorkflow extends AbstractWorkflow
 					$state = $handler->start($model);
 				}
 
-				$data['_children']['tl_content'][] = $state->getId();
+				// do not store deleted children
+				// FIXME: Make it configurable
+				if(\Input::get('act') != 'delete' || $state->getProperty('pid') != \Input::get('id'))
+				{
+					$data['_children']['tl_content'][] = $state->getId();
+				}
 			}
 		}
 
