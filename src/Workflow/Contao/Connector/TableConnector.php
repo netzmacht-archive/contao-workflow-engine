@@ -7,7 +7,7 @@ use DcaTools\Data\ModelFactory;
 use DcaTools\Definition;
 use DcaTools\Definition\DataContainer;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use Workflow\Model\Model;
+
 
 /**
  * TableConnector is the default connector for DC_Table
@@ -122,7 +122,7 @@ class TableConnector extends AbstractConnector
 
 		if($entity)
 		{
-			return $this->controller->initialize($entity);
+			return $this->controller->initialize($entity, false);
 		}
 
 		return false;
@@ -137,7 +137,6 @@ class TableConnector extends AbstractConnector
 		$class = get_class($this);
 
 		$this->definition->registerCallback('onsubmit', array($class, 'callbackOnSubmit'));
-		$this->definition->registerCallback('oncreate', array($class, 'callbackOnCreate'));
 		$this->definition->registerCallback('ondelete', array($class, 'callbackOnDelete'));
 
 		foreach($this->definition->getProperties() as $property)
@@ -163,8 +162,9 @@ class TableConnector extends AbstractConnector
 		if(!$this->reachedChanged)
 		{
 			$entity = ModelFactory::byDc($dc);
+			$start  = $entity->getProperty('tstamp') > 0;
 
-			if($this->controller->initialize($entity) && $value != $entity->getProperty($dc->field))
+			if($this->controller->initialize($entity, $start) && $value != $entity->getProperty($dc->field))
 			{
 				if($this->hasState('change'))
 				{
@@ -185,8 +185,9 @@ class TableConnector extends AbstractConnector
 	public function callbackOnSubmit($dc)
 	{
 		$entity = ModelFactory::byDc($dc);
+		$start  = $entity->getProperty('tstamp') > 0;
 
-		if($this->reachedChanged && $this->controller->initialize($entity))
+		if($this->reachedChanged && $this->controller->initialize($entity, $start))
 		{
 			$state = $this->controller->getCurrentState();
 			$state->setData($this->controller->getCurrentModel()->getWorkflowData());
@@ -198,44 +199,14 @@ class TableConnector extends AbstractConnector
 
 
 	/**
-	 * Initialize workflow after creating element
-	 *
-	 * @param $table
-	 * @param $insertID
-	 * @param $set
-	 */
-	public function callbackOnCreate($table, $insertID, $set)
-	{
-		$this->definition = Definition::getDataContainer($table);
-		$this->id = $insertID;
-		$this->parentView = false;
-
-		if($this->initializeController())
-		{
-			$driver = $this->controller->getDataProvider($table);
-
-			$entity = $driver->getEmptyModel();
-			$entity->setPropertiesAsArray($set);
-			$entity->setId($insertID);
-
-			$model = new Model($entity, $this->controller);
-
-			if(!$this->controller->getProcessHandler()->getCurrentState($model))
-			{
-				$this->controller->getProcessHandler()->start($model);
-			}
-		}
-	}
-
-
-	/**
 	 * Trigger delete action if action is defined in process steps
 	 */
 	public function callbackOnDelete($dc)
 	{
 		$entity = ModelFactory::byDc($dc);
+		$start  = $entity->getProperty('tstamp') > 0;
 
-		if($this->controller->initialize($entity))
+		if($this->controller->initialize($entity, $start))
 		{
 			$this->reachNextState('delete');
 		}

@@ -71,9 +71,10 @@ class Controller
 
 	/**
 	 * @param EntityInterface $entity
+	 * @param bool $start start process if no exists
 	 * @return bool
 	 */
-	public function initialize(EntityInterface $entity)
+	public function initialize(EntityInterface $entity, $start=true)
 	{
 		$this->currentModel    = new Model($entity, $this);
 		$this->currentWorkflow = $this->workflowManager->getAssignedWorkflow($entity);
@@ -81,6 +82,11 @@ class Controller
 		if($this->currentWorkflow && $this->currentWorkflow->hasProcess($entity->getProviderName()))
 		{
 			$state = $this->getProcessHandler()->getCurrentState($this->currentModel);
+
+			if(!$start && !$state)
+			{
+				return false;
+			}
 
 			if(!$state)
 			{
