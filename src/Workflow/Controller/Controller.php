@@ -51,10 +51,14 @@ class Controller
 	protected $currentWorkflow;
 
 	/**
+	 * @var \Workflow\Entity\ModelState|null
+	 */
+	protected $currentState;
+
+	/**
 	 * @var
 	 */
 	protected $requestAction;
-
 
 	/**
 	 * @var UserInterface
@@ -97,14 +101,14 @@ class Controller
 
 		if($this->currentWorkflow && $this->currentWorkflow->hasProcess($entity->getProviderName()))
 		{
-			$state = $this->getProcessHandler()->getCurrentState($this->currentModel);
+			$this->currentState = $this->getProcessHandler()->getCurrentState($this->currentModel);
 
-			if(!$state)
+			if(!$this->currentState)
 			{
-				$state = $this->getProcessHandler()->start($this->currentModel);
+				$this->currentState = $this->getProcessHandler()->start($this->currentModel);
 			}
 
-			return $state;
+			return $this->currentState;
 		}
 
 		return false;
@@ -146,11 +150,11 @@ class Controller
 
 
 	/**
-	 * @return \Workflow\Entity\ModelState
+	 * @return \Workflow\Entity\ModelState|null
 	 */
 	public function getCurrentState()
 	{
-		return $this->getProcessHandler()->getCurrentState($this->currentModel);
+		return $this->currentState;
 	}
 
 
