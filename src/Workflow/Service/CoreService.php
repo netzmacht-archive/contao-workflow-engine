@@ -2,6 +2,7 @@
 
 namespace Workflow\Service;
 
+use Workflow\Controller\UserInterface;
 use Workflow\Event\SecurityEvent;
 use Workflow\Event\StepEvent;
 use Workflow\Model\Model;
@@ -55,12 +56,9 @@ class CoreService extends AbstractService
 	 */
 	public function checkCredentials(SecurityEvent $event)
 	{
-		/** @var \BackendUser $user */
-		$user  = \BackendUser::getInstance();
-		$roles = $event->getStep()->getRoles();
-		$field = sprintf('workflow_%s', $event->getProcessName());
-
-		if(empty($roles) || $user->isAdmin || $user->hasAccess($roles, $field))
+		if(empty($roles) ||
+			$this->controller->getUser()->hasRole($event->getProcessName(), UserInterface::ROLE_ADMIN) ||
+			$this->controller->getUser()->hasRole($event->getProcessName(), $event->getStep()->getRoles()))
 		{
 			$event->grantAccess(true);
 		}

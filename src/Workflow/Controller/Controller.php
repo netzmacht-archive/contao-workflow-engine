@@ -24,6 +24,7 @@ use Workflow\Model\ModelInterface;
  */
 class Controller
 {
+
 	/**
 	 * @var \DcaTools\Data\DriverManagerInterface
 	 */
@@ -53,6 +54,12 @@ class Controller
 	 * @var
 	 */
 	protected $requestAction;
+
+
+	/**
+	 * @var UserInterface
+	 */
+	protected $user;
 
 
 	/**
@@ -194,6 +201,24 @@ class Controller
 
 
 	/**
+	 * @param \Workflow\Controller\UserInterface $user
+	 */
+	public function setUser($user)
+	{
+		$this->user = $user;
+	}
+
+
+	/**
+	 * @return \Workflow\Controller\UserInterface
+	 */
+	public function getUser()
+	{
+		return $this->user;
+	}
+
+
+	/**
 	 * @param $stateName
 	 * @return \Workflow\Entity\ModelState
 	 */
@@ -204,11 +229,13 @@ class Controller
 
 
 	/**
+	 * @param string $tableName
 	 * @return \Workflow\Handler\ProcessHandlerInterface
 	 */
-	public function getProcessHandler()
+	public function getProcessHandler($tableName=null)
 	{
-		return $this->currentWorkflow->getProcessHandler($this->currentModel->getEntity()->getProviderName());
+		$tableName = $tableName ?: $this->currentModel->getEntity()->getProviderName();
+		return $this->currentWorkflow->getProcessHandler($tableName);
 	}
 
 

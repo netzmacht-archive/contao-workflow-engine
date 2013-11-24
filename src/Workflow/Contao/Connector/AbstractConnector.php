@@ -109,6 +109,7 @@ abstract class AbstractConnector implements ConnectorInterface
 	{
 		$this->controller = $GLOBALS['container']['workflow.controller'];
 		$this->controller->setRequestAction($this->action);
+		$this->controller->setUser($GLOBALS['container']['workflow.user']);
 
 		$entity = $this->initializeEntity();
 

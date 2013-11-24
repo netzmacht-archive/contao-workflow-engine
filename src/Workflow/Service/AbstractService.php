@@ -140,13 +140,11 @@ abstract class AbstractService implements ServiceInterface
 	 */
 	public function applyRoles()
 	{
-		/** @var \BackendUser $user */
-		$user   = \BackendUser::getInstance();
-		$roles  = $this->service->getProperty('roles');
-		$table  = $this->service->getProperty('tableName');
-		$config = 'workflow_' . $this->controller->getCurrentWorkflow()->getProcessHandler($table)->getProcess()->getName();
+		$table   = $this->service->getProperty('tableName');
+		$process = $this->controller->getCurrentWorkflow()->getProcessHandler($table)->getProcess()->getName();
+		$roles   = $this->service->getProperty('roles');
 
-		return $user->hasAccess($roles, $config);
+		return $this->controller->getUser()->hasRole($process, $roles);
 	}
 
 

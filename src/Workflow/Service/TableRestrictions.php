@@ -111,15 +111,13 @@ class TableRestrictions extends AbstractService
 	 */
 	protected function applyService()
 	{
-		$table  = $this->service->getProperty('tableName');
-		$roles  = deserialize($this->service->getProperty('roles'), true);
-		$steps  = deserialize($this->service->getProperty('steps'), true);
-		$config = 'workflow_' . $this->controller->getCurrentWorkflow()->getProcessHandler($table)->getProcess()->getName();
+		$table   = $this->service->getProperty('tableName');
+		$process = $this->controller->getProcessHandler($table)->getProcess()->getName();
 
-		/** @var \BackendUser $user */
-		$user   = \BackendUser::getInstance();
+		$roles   = deserialize($this->service->getProperty('roles'), true);
+		$steps   = deserialize($this->service->getProperty('steps'), true);
 
-		if(!$user->hasAccess($roles, $config))
+		if(!$this->controller->getUser()->hasRole($process, $roles))
 		{
 			return false;
 		}

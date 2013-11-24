@@ -42,3 +42,11 @@ $GLOBALS['container']['workflow.model-state-storage'] = $GLOBALS['container']->s
 $GLOBALS['container']['workflow.entity-registry'] = $GLOBALS['container']->share(function($c) {
 	return new \Workflow\Entity\Registry();
 });
+
+
+/**
+ * Workflow User
+ */
+$GLOBALS['container']['workflow.user'] = $GLOBALS['container']->share(function() {
+	return new \Workflow\Contao\ContaoUser();
+});
