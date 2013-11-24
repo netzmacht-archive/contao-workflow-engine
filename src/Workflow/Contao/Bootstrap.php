@@ -63,8 +63,21 @@ class Bootstrap
 				if($module == \Input::get('do'))
 				{
 					$GLOBALS['BE_MOD'][$group][$module]['workflow'] = array('Workflow\Contao\WorkflowModule', 'execute');
-					return;
+					break 2;
 				}
+			}
+		}
+
+		if(TL_MODE == 'BE')
+		{
+			// we have to load user first
+			$user = \BackendUser::getInstance();
+
+			$result = \Database::getInstance()->execute('SELECT name FROM tl_workflow_process');
+
+			foreach($result->fetchEach('name') as $name)
+			{
+				$GLOBALS['TL_PERMISSIONS'][] = 'workflow_' . $name;
 			}
 		}
 	}
