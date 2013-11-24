@@ -63,6 +63,10 @@ class ServiceFactory
 			{
 				throw new WorkflowException('Unknown service with ID');
 			}
+			elseif(!$service->getProperty('active'))
+			{
+				throw new WorkflowException('Service with ID is not active');
+			}
 		}
 
 		$name = $service->getProperty('service');
@@ -96,7 +100,9 @@ class ServiceFactory
 		}
 
 		$driver = $controller->getDataProvider('tl_workflow_service');
-		$builder = ConfigBuilder::create($driver)->filterEquals('pid', $workflow);
+		$builder = ConfigBuilder::create($driver)
+			->filterEquals('pid', $workflow)
+			->filterEquals('active', 1);
 
 		$services = array();
 		$services[] = static::create('core', $controller);
