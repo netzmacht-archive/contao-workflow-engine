@@ -137,6 +137,7 @@ array_insert($GLOBALS['BE_MOD'], 1, array
  */
 $GLOBALS['TL_WORKFLOW_SERVICES']['parent']              = 'Workflow\Service\ParentService';
 $GLOBALS['TL_WORKFLOW_SERVICES']['table-restrictions']  = 'Workflow\Service\TableRestrictions';
+$GLOBALS['TL_WORKFLOW_SERVICES']['item-restrictions']   = 'Workflow\Service\ItemRestrictions';
 //$GLOBALS['TL_WORKFLOW_SERVICES']['notify']          = 'Workflow\Service\NotifyService';
 //$GLOBALS['TL_WORKFLOW_SERVICES']['restrict-access'] = 'Workflow\Service\RestrictAccessService';
 
