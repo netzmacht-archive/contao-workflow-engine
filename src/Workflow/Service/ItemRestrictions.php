@@ -7,8 +7,12 @@ use DcaTools\Definition;
 use DcaTools\Event\GenerateEvent;
 use DcaTools\Listener\ListenerHelper;
 use DcGeneral\Data\ModelInterface as EntityInterface;
-use Workflow\Event\SecurityEvent;
 
+
+/**
+ * Class ItemRestrictions
+ * @package Workflow\Service
+ */
 class ItemRestrictions extends AbstractService
 {
 	protected static $config = array

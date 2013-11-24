@@ -14,14 +14,12 @@ abstract class AbstractConnector implements ConnectorInterface
 	 */
 	protected $parentView;
 
-
 	/**
 	 * Used int id
 	 *
 	 * @param int
 	 */
 	protected $id;
-
 
 	/**
 	 * Current action
@@ -30,14 +28,12 @@ abstract class AbstractConnector implements ConnectorInterface
 	 */
 	protected $action;
 
-
 	/**
 	 * DataContainer definition
 	 *
 	 * @var \DcaTools\Definition\DataContainer
 	 */
 	protected $definition;
-
 
 	/**
 	 * @var \Workflow\Controller\Controller
@@ -164,25 +160,15 @@ abstract class AbstractConnector implements ConnectorInterface
 	}
 
 
-
 	/**
 	 * Trigger an error will create log message and redirect to error page
 	 *
-	 * @param $strMessage
+	 * @param $message
 	 * @param bool $redirect
 	 */
-	public static function error($strMessage, $redirect=true)
+	public static function error($message, $redirect=true)
 	{
-		$arrDebug = debug_backtrace();
-		$strCall = $arrDebug[1]['class'] . ' ' .$arrDebug[1]['function'];
-
-		\Controller::log($strMessage, $strCall, 'TL_ERROR');
-
-		if($redirect)
-		{
-			\Controller::redirect('contao/main.php?act=error');
-		}
-
+		\DcaTools\Controller::error($message, $redirect);
 	}
 
 
