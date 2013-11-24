@@ -75,6 +75,11 @@ class Controller
 	 */
 	public function initialize(EntityInterface $entity)
 	{
+		if($this->isInitialized($entity))
+		{
+			return true;
+		}
+
 		$this->currentModel    = new Model($entity, $this);
 		$this->currentWorkflow = $this->workflowManager->getAssignedWorkflow($entity);
 
@@ -88,6 +93,26 @@ class Controller
 			}
 
 			return $state;
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * @param EntityInterface $entity
+	 * @return bool
+	 */
+	protected function isInitialized(EntityInterface $entity)
+	{
+		if($this->currentModel)
+		{
+			$current = $this->currentModel->getEntity();
+
+			if($current->getProviderName() && $entity->getProviderName() && $current->getId() == $entity->getId())
+			{
+				return true;
+			}
 		}
 
 		return false;
