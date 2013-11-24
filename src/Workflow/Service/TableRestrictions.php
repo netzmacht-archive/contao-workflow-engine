@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: david
- * Date: 19.11.13
- * Time: 13:21
- */
 
 namespace Workflow\Service;
 
@@ -12,20 +6,36 @@ use DcaTools\Definition;
 use DcaTools\Event\PermissionEvent;
 use DcaTools\Listener\DataContainerListener;
 
+
+/**
+ * Class TableRestrictions
+ * @package Workflow\Service
+ */
 class TableRestrictions extends AbstractService
 {
+
+	/**
+	 * Service configuration
+	 *
+	 * @var array
+	 */
 	protected static $config = array
 	(
 		'name'      => 'table-restrictions',
 		'drivers'   => array('Table'),
 		'config'    => array
 		(
-			'scope'  => array('steps', 'roles', 'addFilter'),
+			'scope'  => array('steps', 'roles'),
+			'filter' => array('addFilter'),
 			'config' => array('table_restrictions', 'table_operations', 'table_globalOperations'),
 		),
 	);
 
+	/**
+	 * @var array
+	 */
 	protected $restrictions;
+
 
 	/**
 	 * Initialize the workflow service
