@@ -138,7 +138,7 @@ class ProcessHandler implements ProcessHandlerInterface
      */
     protected function reachStep(ModelInterface $model, Step $step, ModelState $currentModelState = null)
     {
-	    if(!$this->checkCredentials($model, $step))
+	    if(!$this->checkCredentials($model, $step, $this->getProcess()->getName()))
 	    {
 		    $message = sprintf('Access denied. The current user is not allowed to reach the step "%s"', $step->getName());
 
@@ -236,13 +236,14 @@ class ProcessHandler implements ProcessHandlerInterface
      *
      * @param  ModelInterface $model
      * @param  Step $step
+     * @param  string $processName
      * @return bool
      */
-    public function checkCredentials(ModelInterface $model, Step $step)
+    public function checkCredentials(ModelInterface $model, Step $step, $processName)
     {
 	    // auto grant access if no roles are defined
 	    $grant = (count($step->getRoles()) == 0);
-	    $event = new SecurityEvent($step, $model, $grant);
+	    $event = new SecurityEvent($processName, $step, $model, $grant);
 
 	    $this->dispatcher->dispatch('workflow.check_credentials', $event);
 

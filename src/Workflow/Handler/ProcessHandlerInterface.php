@@ -65,8 +65,9 @@ interface ProcessHandlerInterface
 	/**
 	 * @param ModelInterface $model
 	 * @param Step $step
+	 * @param string $processName
 	 * @return bool
 	 */
-	public function checkCredentials(ModelInterface $model, Step $step);
+	public function checkCredentials(ModelInterface $model, Step $step, $processName);
 
 }
