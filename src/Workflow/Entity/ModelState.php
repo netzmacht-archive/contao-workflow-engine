@@ -116,7 +116,7 @@ class ModelState extends Entity
 	 */
 	public function getData()
 	{
-		return json_decode($this->getProperty('data'));
+		return WorkflowDataHelper::decode($this->getProperty('data'));
 	}
 
 
@@ -128,7 +128,7 @@ class ModelState extends Entity
 	public function setData($data)
 	{
 		if (!is_string($data)) {
-			$data = json_encode($data);
+			$data = WorkflowDataHelper::encode($data);
 		}
 
 		$this->setProperty('data', $data);
@@ -164,7 +164,7 @@ class ModelState extends Entity
 	 */
 	public function getErrors()
 	{
-		return deserialize($this->getProperty('errors'), true);
+		return WorkflowDataHelper::decode($this->getProperty('errors'));
 	}
 
 
@@ -176,7 +176,7 @@ class ModelState extends Entity
 	public function setErrors($errors)
 	{
 		if (!is_string($errors)) {
-			$errors = json_encode($errors);
+			$errors = WorkflowDataHelper::encode($errors);
 		}
 
 		$this->setProperty('errors', $errors);
