@@ -3,6 +3,8 @@
 namespace Workflow\Service;
 
 use Workflow\Event\SecurityEvent;
+use Workflow\Event\StepEvent;
+use Workflow\Model\Model;
 
 /**
  * Class CoreService provides is assigned to every workflow providing core features like authentication
@@ -11,9 +13,18 @@ use Workflow\Event\SecurityEvent;
  */
 class CoreService extends AbstractService
 {
-	const VERSION = '1.0.0';
+	/**
+	 * @var array
+	 */
+	protected static $config = array
+	(
+		'name' => 'core',
+	);
 
-	const IDENTIFIER = 'core';
+	/**
+	 * @var array
+	 */
+	protected $listeners = array();
 
 
 	/**
@@ -45,10 +56,9 @@ class CoreService extends AbstractService
 	public function checkCredentials(SecurityEvent $event)
 	{
 		/** @var \BackendUser $user */
-		$user = \BackendUser::getInstance();
+		$user  = \BackendUser::getInstance();
 		$roles = $event->getStep()->getRoles();
-		$tableName = $event->getModel()->getEntity()->getProviderName();
-		$field = sprintf('workflow_%s_%s', \Input::get('do'), $tableName);
+		$field = sprintf('workflow_%s', $event->getProcessName());
 
 		if(empty($roles) || $user->isAdmin || $user->hasAccess($roles, $field))
 		{
@@ -56,16 +66,33 @@ class CoreService extends AbstractService
 		}
 		else
 		{
-			if(in_array('owner', $roles) && isset($GLOBALS['TL_WORKFLOW_OWNER_MAPPING'][$tableName]))
-			{
-				if($user->id == $event->getModel()->getEntity()->getProperty($GLOBALS['TL_WORKFLOW_OWNER_MAPPING'][$tableName]))
-				{
-					$event->grantAccess(true);
-					return;
-				}
-			}
-
 			$event->grantAccess(false);
+		}
+	}
+
+
+	/**
+	 * Notify parent that child has changed
+	 *
+	 * @param StepEvent $event
+	 */
+	public function notifyParent(StepEvent $event)
+	{
+		$entity = $event->getModel()->getEntity();
+		$parent = $this->controller->getCurrentWorkflow()->getParent($entity);
+
+		if($parent)
+		{
+			$model   = new Model($parent, $this->controller);
+			$handler = $this->controller->getCurrentWorkflow()->getProcessHandler($parent->getProviderName());
+
+			if(!$handler->getCurrentState($model))
+			{
+				$handler->start($model);
+			}
+			else {
+				$handler->reachNextState($model, 'change');
+			}
 		}
 	}
 
