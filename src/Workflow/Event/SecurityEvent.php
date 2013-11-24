@@ -16,18 +16,15 @@ class SecurityEvent extends Event
 	 */
 	protected $granted;
 
-
 	/**
 	 * @var \Workflow\Flow\Step
 	 */
 	protected $step;
 
-
 	/**
 	 * @var ModelInterface
 	 */
 	protected $model;
-
 
 	/**
 	 * @var ViolationList
