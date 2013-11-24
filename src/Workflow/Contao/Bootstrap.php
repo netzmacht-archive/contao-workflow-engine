@@ -3,6 +3,7 @@
 namespace Workflow\Contao;
 
 use DcaTools\Definition;
+use Workflow\Controller\WorkflowManager;
 
 
 /**
@@ -21,16 +22,14 @@ class Bootstrap
 		/** @var \Pimple $container */
 		global $container;
 
-		if($name == \Input::get('table') &&
-			!in_array(\Input::get('do'), $GLOBALS['TL_CONFIG']['workflow_disabledModules']) &&
-			!in_array($name, $GLOBALS['TL_CONFIG']['workflow_disabledTables'])
-		) {
+		if($name == \Input::get('table') && WorkflowManager::getAvailableWorkflowsForDataContainer($name))
+		{
 			try {
-				$definition = Definition::getDataContainer($name);
+				$definition    = Definition::getDataContainer($name);
 				$dataContainer = $definition->get('config/dataContainer');
 
 				// TODO: Should we allow other driver as well?
-				if($dataContainer == 'Table' || $dataContainer == 'General')
+				if(in_array($dataContainer, $GLOBALS['TL_CONFIG']['workflow_supportedDataContainers']))
 				{
 					/** @var \Workflow\Contao\Connector\ConnectorInterface $class */
 					$class = sprintf('Workflow\Contao\Connector\%sConnector', $dataContainer);
@@ -71,7 +70,7 @@ class Bootstrap
 		if(TL_MODE == 'BE')
 		{
 			// we have to load user first
-			$user = \BackendUser::getInstance();
+			\BackendUser::getInstance();
 
 			$result = \Database::getInstance()->execute('SELECT name FROM tl_workflow_process');
 

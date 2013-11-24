@@ -6,55 +6,12 @@
 $GLOBALS['TL_HOOKS']['loadDataContainer'][] = array('Workflow\Contao\Bootstrap', 'hookLoadDataContainer');
 $GLOBALS['TL_HOOKS']['initializeSystem'][]  = array('Workflow\Contao\Bootstrap', 'hookInitializeSystem');
 
-$GLOBALS['TL_EVENTS']['workflow.selectWorkflow'][] = array('Workflow\Contao\WorkflowSelector', 'selectWorkflow');
 
-
+/**
+ * Workflow engine stores workflow data using the json format by defauat. If your server does not support json
+ * you can switch to phps serialisation by setting value to 'php' BEFORE creating any workflow states.
+ */
 $GLOBALS['TL_CONFIG']['worflow_dataEncoding'] = 'json';
-
-/**
- * Tables which are disabled for workflows
- */
-$GLOBALS['TL_CONFIG']['workflow_disabledTables'] = array
-(
-	// workflow tables
-	'tl_workflow',
-	'tl_workflow_state',
-	'tl_workflow_process',
-	'tl_workflow_service',
-	'tl_workflow_draft',
-	'tl_workflow_step',
-
-	// system tables
-	'tl_user',
-	'tl_user_group',
-	'tl_member',
-	'tl_member_group',
-	'tl_log',
-	'tl_version',
-	'tl_undo',
-	'tl_cron',
-	'tl_repository_installs',
-	'tl_repository_instfiles',
-	'tl_search',
-	'tl_search_index',
-	'tl_session',
-	'tl_extension',
-	'tl_settings',
-);
-
-
-/**
- * no workflow in this modules
- */
-$GLOBALS['TL_CONFIG']['workflow_disabledModules'] = array
-(
-	'workflow',
-	'settings',
-	'member',
-	'user',
-	'mgroup',
-	'group'
-);
 
 
 /**
@@ -136,6 +93,16 @@ array_insert($GLOBALS['BE_MOD'], 1, array
 
 
 /**
+ * Workflow connectors are used to connect a DC_Driver to the workflow engine.
+ *
+ * If you use a custom DC_Driver based on a supported one you have to register the connector based on the DC_Driver name
+ */
+$GLOBALS['TL_WORKFLOW_CONNECTORS']['Table'] = '\Workflow\Contao\Connector\TableConnector';
+//$GLOBALS['TL_WORKFLOW_CONNECTORS']['Folder'] = '\Workflow\Contao\Connector\FolderConnector';
+//$GLOBALS['TL_WORKFLOW_CONNECTORS']['General'] = '\Workflow\Contao\Connector\GeneralConnector';
+
+
+/**
  * Provided workflow services
  */
 $GLOBALS['TL_WORKFLOW_SERVICES']['parent']              = 'Workflow\Service\ParentService';
@@ -145,5 +112,8 @@ $GLOBALS['TL_WORKFLOW_SERVICES']['item-restrictions']   = 'Workflow\Service\Item
 //$GLOBALS['TL_WORKFLOW_SERVICES']['restrict-access'] = 'Workflow\Service\RestrictAccessService';
 
 
+/**
+ * Workflows are used for getting the relation betwenn different data
+ */
 //$GLOBALS['TL_WORKFLOWS']['page'] = 'Workflow\Contao\Workflow\PageWorkflow';
 $GLOBALS['TL_WORKFLOWS']['news'] = 'Workflow\Contao\Workflow\NewsWorkflow';
