@@ -214,7 +214,7 @@ class WorkflowManager
 	 */
 	protected function getWorkflowTypes(EntityInterface $entity)
 	{
-		$eventName = 'workflow.controller.get-workflow-types';
+		$eventName = 'workflow.get-workflow-types';
 		$event     = new WorkflowTypeEvent($entity);
 
 		$this->controller->getEventDispatcher()->dispatch($eventName, $event);

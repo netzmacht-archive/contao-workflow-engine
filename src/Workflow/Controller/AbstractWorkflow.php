@@ -68,7 +68,7 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 	 */
 	public static function bootstrap(Controller $controller)
 	{
-		$eventName = 'workflow.controller.get-workflow-types';
+		$eventName = 'workflow.get-workflow-types';
 		$listener  = array(get_called_class(), 'listenerGetWorkflowType');
 
 		$controller->getEventDispatcher()->addListener($eventName, $listener);
