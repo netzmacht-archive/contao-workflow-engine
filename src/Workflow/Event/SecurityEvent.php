@@ -34,14 +34,21 @@ class SecurityEvent extends Event
 	 */
 	protected $errors;
 
+	/**
+	 * @var string Process name
+	 */
+	protected $processName;
+
 
 	/**
+	 * @param string $processName
 	 * @param Step $step
 	 * @param ModelInterface $model
 	 * @param bool $granted
 	 */
-	public function __construct(Step $step, ModelInterface $model, $granted=false)
+	public function __construct($processName, Step $step, ModelInterface $model, $granted=false)
 	{
+		$this->processName = $processName;
 		$this->model = $model;
 		$this->step = $step;
 		$this->granted = $granted;
@@ -73,6 +80,15 @@ class SecurityEvent extends Event
 	public function isGranted()
 	{
 		return $this->granted;
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getProcessName()
+	{
+		return $this->processName;
 	}
 
 

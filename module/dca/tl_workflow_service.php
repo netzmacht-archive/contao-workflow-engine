@@ -88,10 +88,15 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 	(
 		'default' => array
 		(
-			'name'   => array('name', 'description', 'service', 'tableName'),
+			'name'   => array('name', 'description', 'service', 'tableName', 'active'),
 			'scope'  => array(),
 			'config' => array(),
 		),
+	),
+
+	'metasubpalettes' => array
+	(
+		'addFilter' => array('filterReference', 'filterMode', 'filter'),
 	),
 
 	'fields' => array
@@ -187,6 +192,19 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			'sql'               => "varchar(64) NOT NULL default ''",
 		),
 
+		'active' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['active'],
+			'inputType'         => 'checkbox',
+			'exclude'           => true,
+			'default'           => 'reached',
+			'eval'              => array
+			(
+				'tl_class'  => 'clr',
+			),
+			'sql'               => "char(1) NOT NULL default ''",
+		),
+
 		'reference' => array
 		(
 			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['reference'],
@@ -260,11 +278,11 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			'inputType'         => 'checkbox',
 			'exclude'           => true,
 			'default'           => 'reached',
-			'options'           => &$GLOBALS['TL_CONFIG']['workflow_roles'],
+			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getRoles'),
 			'reference'         => $GLOBALS['TL_LANG']['workflow']['roles'],
 			'eval'              => array
 			(
-				'mandatory' => true,
+				'mandatory' => false,
 				'multiple'  => true,
 				'tl_class'  => 'clr',
 			),
@@ -310,6 +328,105 @@ $GLOBALS['TL_DCA']['tl_workflow_service'] = array
 			(
 				'multiple'      => true,
 				'tl_class'      => 'clr',
+			),
+			'sql'               => "mediumblob NULL",
+		),
+
+		'addFilter' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['addFilter'],
+			'inputType'         => 'checkbox',
+			'exclude'           => true,
+			'eval'              => array
+			(
+				'submitOnChange' => true,
+				'tl_class'       => 'clr',
+			),
+			'sql'               => "char(1) NOT NULL default ''",
+		),
+
+		'filterMode' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['filterMode'],
+			'inputType'         => 'select',
+			'options'           => array('and', 'or'),
+			'exclude'           => true,
+			'eval'              => array
+			(
+				'mandatory'     => true,
+				'tl_class'      => 'w50',
+			),
+			'sql'               => "char(3) NOT NULL default ''",
+		),
+
+		'filter' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['filter'],
+			'inputType'         => 'multiColumnWizard',
+			'exclude'           => true,
+			'eval'              => array
+			(
+				'tl_class'      => 'clr',
+				'columnFields'  => array
+				(
+					'property' => array
+					(
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['filter_property'],
+						'inputType'         => 'select',
+						'options_callback'  => array('Workflow\Contao\Dca\Service', 'getProperties'),
+						'eval'              => array('style' => 'width: 130px', 'readonly' => true),
+					),
+
+					'operation' => array
+					(
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['filter_operation'],
+						'inputType'         => 'select',
+						'options'           => array('equals', 'lt', 'gt', 'not'),
+						'eval'              => array('style' => 'width: 120px'),
+					),
+
+					'value' => array
+					(
+						'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['filter_value'],
+						'inputType'         => 'text',
+						'eval'              => array('style' => 'width: 300px'),
+					),
+				),
+			),
+			'sql'               => "blob NULL",
+		),
+
+		'filterReference' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['reference'],
+			'inputType'         => 'select',
+			'exclude'       => true,
+			'sorting'       => true,
+			'search'        => true,
+			'filter'        => true,
+			'options_callback'  => array('Workflow\Contao\Dca\Service', 'getReferenceTables'),
+			'reference'         => &$GLOBALS['TL_LANG']['workflow']['services'],
+			'eval'              => array
+			(
+				'includeBlankOption' => true,
+				'submitOnChange'     => true,
+				'mandatory'          => true,
+				'tl_class'           => 'clr w50',
+			),
+			'sql'               => "varchar(64) NOT NULL default ''",
+		),
+
+
+		'actions' => array
+		(
+			'label'             => &$GLOBALS['TL_LANG']['tl_workflow_service']['actions'],
+			'inputType'         => 'checkbox',
+			'options'           => array('show', 'edit', 'create', 'paste', 'delete', 'showAll', 'editAll', 'deleteAll'),
+			'exclude'           => true,
+			'eval'              => array
+			(
+				'multiple'       => true,
+				'tl_class'       => 'clr w50',
 			),
 			'sql'               => "mediumblob NULL",
 		),
