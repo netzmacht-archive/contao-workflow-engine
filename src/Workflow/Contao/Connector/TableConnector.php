@@ -122,7 +122,17 @@ class TableConnector extends AbstractConnector
 
 		if($entity)
 		{
-			return $this->controller->initialize($entity, false);
+			$state = $this->controller->initialize($entity, false);
+
+			if($state)
+			{
+				if(!$state->getSuccessFul())
+				{
+					$this->error($state->getErrors());
+				}
+
+				return $state->getSuccessful();
+			}
 		}
 
 		return false;
@@ -162,9 +172,8 @@ class TableConnector extends AbstractConnector
 		if(!$this->reachedChanged)
 		{
 			$entity = ModelFactory::byDc($dc);
-			$start  = $entity->getProperty('tstamp') > 0;
 
-			if($this->controller->initialize($entity, $start) && $value != $entity->getProperty($dc->field))
+			if($this->controller->initialize($entity) && $value != $entity->getProperty($dc->field))
 			{
 				if($this->hasState('change'))
 				{
@@ -185,9 +194,8 @@ class TableConnector extends AbstractConnector
 	public function callbackOnSubmit($dc)
 	{
 		$entity = ModelFactory::byDc($dc);
-		$start  = $entity->getProperty('tstamp') > 0;
 
-		if($this->reachedChanged && $this->controller->initialize($entity, $start))
+		if($this->reachedChanged && $this->controller->initialize($entity))
 		{
 			$state = $this->controller->getCurrentState();
 			$state->setData($this->controller->getCurrentModel()->getWorkflowData());
@@ -204,9 +212,8 @@ class TableConnector extends AbstractConnector
 	public function callbackOnDelete($dc)
 	{
 		$entity = ModelFactory::byDc($dc);
-		$start  = $entity->getProperty('tstamp') > 0;
 
-		if($this->controller->initialize($entity, $start))
+		if($this->controller->initialize($entity))
 		{
 			$this->reachNextState('delete');
 		}
