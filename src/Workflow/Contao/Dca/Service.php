@@ -153,12 +153,16 @@ class Service extends Generic
 	 */
 	public function getTables()
 	{
-		$processes = deserialize($this->workflow->getEntity()->getProperty('processes'), true);
-		$tables    = array();
+		$tables = array();
 
-		foreach($processes as $config)
+		if($this->workflow)
 		{
-			$tables[] = $config['table'];
+			$processes = deserialize($this->workflow->getEntity()->getProperty('processes'), true);
+
+			foreach($processes as $config)
+			{
+				$tables[] = $config['table'];
+			}
 		}
 
 		return $tables;
@@ -225,7 +229,7 @@ class Service extends Generic
 		{
 			$definition = Definition::getDataContainer($this->entity->getProperty('tableName'));
 
-			foreach($definition->getOperations('global') as $operation)
+			foreach($definition->getGlobalOperations() as $operation)
 			{
 				$label = $operation->getLabel();
 				$operations[$operation->getName()] = $label[0] ?: $operation->getName();
@@ -233,6 +237,59 @@ class Service extends Generic
 		}
 
 		return $operations;
+	}
+
+
+	/**
+	 *
+	 */
+	public function getProperties()
+	{
+		if($this->entity && $this->entity->getProperty('filterReference'))
+		{
+			$definition = Definition::getDataContainer($this->entity->getProperty('filterReference'));
+			return $definition->getPropertyNames();
+		}
+
+		return array();
+	}
+
+
+	public function getReferenceTables()
+	{
+		$tables = array();
+
+		if($this->entity && $this->workflow && $this->entity->getProperty('tableName'))
+		{
+			$tables[] = $this->entity->getProperty('tableName');
+
+			$config = $this->workflow->getConfig($this->entity->getProperty('tableName'));
+
+			if($config['parent'])
+			{
+				$tables[] = $config['parent'];
+			}
+		}
+
+		return $tables;
+	}
+
+
+	public function getRoles()
+	{
+		if($this->workflow)
+		{
+			$processes = $this->workflow->getProcessConfiguration();
+
+			$roles = \Database::getInstance()
+				->prepare('SELECT roles FROM tl_workflow_process WHERE id=?')
+				->execute($processes[$this->entity->getProperty('tableName')])
+				->roles;
+
+			return trimsplit(',', $roles);
+		}
+
+		return array();
 	}
 
 
@@ -309,42 +366,6 @@ class Service extends Generic
 	}
 
 
-	public function getReferenceTables()
-	{
-		if($this->entity)
-		{
-			$table = ConfigBuilder::create($this->manager->getDataProvider('tl_workflow'))
-				->field('tableName')
-				->filterEquals('id', $this->entity->getProperty('pid'))
-				->fetch()
-				->getProperty('tableName');
-		}
-
-		if(!$table)
-		{
-			return array();
-		}
-
-		$definition = Definition::getDataContainer($table);
-		$parents    = array($table);
-
-		while($definition->get('config/ptable') !== null)
-		{
-			$table = DynamicParent::getDynamicParent($definition->getName(), $this->model->getProperty('limitModule'));
-
-			if(!$table)
-			{
-				break;
-			}
-
-			$definition = Definition::getDataContainer($table);
-			$parents[] = $table;
-		}
-
-		return $parents;
-	}
-
-
 	/**
 	 * Get tables for restrictions
 	 *
@@ -379,7 +400,7 @@ class Service extends Generic
 			$definition = Definition::getDataContainer($table);
 			$translator = Translator::create($table);
 
-			foreach($definition->getOperationNames('global') as $operation)
+			foreach($definition->getGlobalOperationNames() as $operation)
 			{
 				$operations[$table . ' (global)'][$table . '::global::' . $operation] = $translator->globalOperation($operation);
 			}

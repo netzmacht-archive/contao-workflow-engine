@@ -37,7 +37,7 @@ class Workflow extends Generic
 		{
 			/** @var \Workflow\Controller\WorkflowInterface $class */
 			$class = $GLOBALS['TL_WORKFLOWS'][$workflow];
-			return $class::getSupportedTables();
+			return $class::getSupportedDataContainers();
 		}
 
 		return $tables;

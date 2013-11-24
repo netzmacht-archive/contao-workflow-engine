@@ -29,10 +29,10 @@ class Bootstrap
 				$dataContainer = $definition->get('config/dataContainer');
 
 				// TODO: Should we allow other driver as well?
-				if(in_array($dataContainer, $GLOBALS['TL_CONFIG']['workflow_supportedDataContainers']))
+				if(isset($GLOBALS['TL_WORKFLOW_CONNECTORS'][$dataContainer]))
 				{
 					/** @var \Workflow\Contao\Connector\ConnectorInterface $class */
-					$class = sprintf('Workflow\Contao\Connector\%sConnector', $dataContainer);
+					$class = $GLOBALS['TL_WORKFLOW_CONNECTORS'][$dataContainer];
 					$class::bootstrap($definition, $container['event-dispatcher']);
 
 					$GLOBALS['container']['workflow.connector'] = $container->share(function () use($class) {
