@@ -90,6 +90,11 @@ class ParentService extends AbstractService
 	 */
 	public function initialize()
 	{
+		if(!$this->isAssigned($this->controller->getCurrentModel()->getEntity()))
+		{
+			return;
+		}
+
 		$table      = $this->service->getProperty('tableName');
 		$definition = Definition::getDataContainer($table);
 		$config     = $this->controller->getCurrentWorkflow()->getConfig($table);
