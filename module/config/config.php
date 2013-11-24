@@ -8,6 +8,9 @@ $GLOBALS['TL_HOOKS']['initializeSystem'][]  = array('Workflow\Contao\Bootstrap',
 
 $GLOBALS['TL_EVENTS']['workflow.selectWorkflow'][] = array('Workflow\Contao\WorkflowSelector', 'selectWorkflow');
 
+
+$GLOBALS['TL_CONFIG']['worflow_dataEncoding'] = 'json';
+
 /**
  * Tables which are disabled for workflows
  */
