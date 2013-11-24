@@ -91,7 +91,7 @@ class WorkflowManager
 		{
 			$id = $workflowEntity->getId();
 
-			if(!isset($workflows[$id]))
+			if(!isset($this->workflows[$id]))
 			{
 				$workflow = $this->createInstance($workflowEntity);
 				$workflow->setController($this->controller);
@@ -137,6 +137,74 @@ class WorkflowManager
 		}
 
 		throw new WorkflowException(sprintf('Invalid workflow type "%s"', $type));
+	}
+
+
+	/**
+	 * @param $workflowIdentifier
+	 * @return mixed
+	 * @throws \Workflow\Exception\WorkflowException
+	 */
+	public static function GetWorkflowClass($workflowIdentifier)
+	{
+		if(isset($GLOBALS['TL_WORKFLOWS'][$workflowIdentifier]))
+		{
+			return $GLOBALS['TL_WORKFLOWS'][$workflowIdentifier];
+		}
+
+		throw new WorkflowException(sprintf('Unkown workflow identifier "%s"', $workflowIdentifier));
+	}
+
+
+	/**
+	 * Get all available workflow identifiers
+	 * @return array
+	 */
+	public static function getAvailableWorkflowIdentifiers()
+	{
+		return array_keys($GLOBALS['TL_WORKFLOWS']);
+	}
+
+
+	/**
+	 * Get all supported data containers
+	 *
+	 * @return array
+	 */
+	public static function getSupportedDataContainers()
+	{
+		$names = array();
+
+		/** @var \Workflow\Controller\WorkflowInterface $workflow */
+		foreach($GLOBALS['TL_WORKFLOWS'] as $workflow)
+		{
+			$names = array_merge($names, $workflow::getSupportedDataContainers());
+		}
+
+		return array_values(array_unique($names));
+	}
+
+
+	/**
+	 * Get all available workflows for the data container.
+	 *
+	 * @param $name
+	 * @return array
+	 */
+	public static function getAvailableWorkflowsForDataContainer($name)
+	{
+		$workflows = array();
+
+		/** @var \Workflow\Controller\WorkflowInterface $workflow */
+		foreach($GLOBALS['TL_WORKFLOWS'] as $workflow)
+		{
+			if(in_array($name, $workflow::getSupportedDataContainers()))
+			{
+				$workflows[] = $workflow::getIdentifier();
+			}
+		}
+
+		return $workflows;
 	}
 
 
