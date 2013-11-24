@@ -54,7 +54,7 @@ class ServiceFactory
 			{
 				$builder
 					->filterEquals('service', $service)
-					->filterEquals('pid', $controller->getWorkflow()->getId());
+					->filterEquals('pid', $controller->getCurrentWorkflow()->getEntity()->getId());
 			}
 
 			$service = $builder->fetch();
