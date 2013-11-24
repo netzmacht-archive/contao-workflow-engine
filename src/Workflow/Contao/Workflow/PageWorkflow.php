@@ -63,7 +63,7 @@ class PageWorkflow extends AbstractWorkflow
 	 *
 	 * @return array
 	 */
-	public static function getSupportedTables()
+	public static function getSupportedDataContainers()
 	{
 		return array('tl_page', 'tl_article', 'tl_content');
 	}
@@ -121,8 +121,6 @@ class PageWorkflow extends AbstractWorkflow
 	public function initialize()
 	{
 		$this->initializeServices();
-
-		var_dump('HURRA');
 	}
 
 

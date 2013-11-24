@@ -71,10 +71,9 @@ class Controller
 
 	/**
 	 * @param EntityInterface $entity
-	 * @param bool $start start process if no exists
-	 * @return bool
+	 * @return bool|\Workflow\Entity\ModelState
 	 */
-	public function initialize(EntityInterface $entity, $start=true)
+	public function initialize(EntityInterface $entity)
 	{
 		$this->currentModel    = new Model($entity, $this);
 		$this->currentWorkflow = $this->workflowManager->getAssignedWorkflow($entity);
@@ -83,17 +82,12 @@ class Controller
 		{
 			$state = $this->getProcessHandler()->getCurrentState($this->currentModel);
 
-			if(!$start && !$state)
-			{
-				return false;
-			}
-
 			if(!$state)
 			{
-				$this->getProcessHandler()->start($this->currentModel);
+				$state = $this->getProcessHandler()->start($this->currentModel);
 			}
 
-			return true;
+			return $state;
 		}
 
 		return false;
@@ -108,12 +102,9 @@ class Controller
 	{
 		$processes = $this->currentWorkflow->getProcessConfiguration();
 		$tableName = $this->currentModel->getEntity()->getProviderName();
+		$process   = $this->getProcessHandler()->getProcess($processes[$tableName]);
 
-		return $this->getProcessHandler()->checkCredentials($this->currentModel,
-			$this->getProcessHandler()
-				->getProcess($processes[$tableName])
-				->getStep($stepName)
-		);
+		return $this->getProcessHandler()->checkCredentials($this->currentModel, $process->getStep($stepName), $process->getName());
 	}
 
 

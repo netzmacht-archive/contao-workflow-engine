@@ -57,7 +57,7 @@ interface WorkflowInterface
 	 *
 	 * @return array
 	 */
-	public static function getSupportedTables();
+	public static function getSupportedDataContainers();
 
 
 	/**

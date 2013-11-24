@@ -48,7 +48,7 @@ class NewsWorkflow extends AbstractWorkflow
 	 *
 	 * @return array
 	 */
-	public static function getSupportedTables()
+	public static function getSupportedDataContainers()
 	{
 		return array('tl_news_archive', 'tl_news', 'tl_content');
 	}
