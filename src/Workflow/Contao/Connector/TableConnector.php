@@ -59,20 +59,24 @@ class TableConnector extends AbstractConnector
 	/**
 	 * Initialize the Workflow connector
 	 *
-	 * @param $dc
+	 * @param mixed $dc
+	 * @return bool
 	 */
 	public function initialize($dc)
 	{
 		if(!$this->initialized)
 		{
 			$this->initialized = true;
-			parent::initialize($dc);
 
-			if($this->initializeController());
+			if(($success = parent::initialize($dc)))
 			{
 				$this->registerCallbacks();
 			}
+
+			return $success;
 		}
+
+		return true;
 	}
 
 
@@ -88,14 +92,10 @@ class TableConnector extends AbstractConnector
 
 
 	/**
-	 * Initialize workflow controller
-	 *
-	 * @return bool if initialisation was successful
+	 * @return \DcGeneral\Data\ModelInterface|null
 	 */
-	protected function initializeController()
+	protected function initializeEntity()
 	{
-		$this->controller = $GLOBALS['container']['workflow.controller'];
-
 		$driver = $this->controller->getDataProvider($this->definition->getName());
 		$entity = null;
 
@@ -120,22 +120,7 @@ class TableConnector extends AbstractConnector
 			$entity  = ConfigBuilder::create($driver)->setId($this->id)->fetch();
 		}
 
-		if($entity)
-		{
-			$state = $this->controller->initialize($entity, false);
-
-			if($state)
-			{
-				if(!$state->getSuccessFul())
-				{
-					$this->error($state->getErrors());
-				}
-
-				return $state->getSuccessful();
-			}
-		}
-
-		return false;
+		return $entity;
 	}
 
 

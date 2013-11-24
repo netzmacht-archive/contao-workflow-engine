@@ -70,7 +70,7 @@ class ItemRestrictions extends AbstractService
 			$user    = \BackendUser::getInstance();
 			$message = 'User "%s (%s)" has not enough permission to run action "%s"';
 
-			\DcaTools\Controller::error(sprintf($message, $user->username, $user->id, $this->getRequestAction()));
+			\DcaTools\Controller::error(sprintf($message, $user->username, $user->id, $this->controller->getRequestAction()));
 		}
 	}
 

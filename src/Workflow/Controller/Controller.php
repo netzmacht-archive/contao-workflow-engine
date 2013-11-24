@@ -49,6 +49,11 @@ class Controller
 	 */
 	protected $currentWorkflow;
 
+	/**
+	 * @var
+	 */
+	protected $requestAction;
+
 
 	/**
 	 * @param WorkflowManager $workflowManager
@@ -167,6 +172,24 @@ class Controller
 	public function getCurrentModel()
 	{
 		return $this->currentModel;
+	}
+
+
+	/**
+	 * @param $action
+	 */
+	public function setRequestAction($action)
+	{
+		$this->requestAction = $action;
+	}
+
+
+	/**
+	 * @return mixed
+	 */
+	public function getRequestAction()
+	{
+		return $this->requestAction;
 	}
 
 

@@ -167,31 +167,7 @@ abstract class AbstractService implements ServiceInterface
 	 */
 	public function applyRequestAction()
 	{
-		return in_array($this->getRequestAction(), $this->service->getProperty('actions'));
-	}
-
-
-	/**
-	 * @return mixed|string
-	 */
-	protected function getRequestAction()
-	{
-		$action = \Input::get('act');
-
-		if(\Input::get('tid'))
-		{
-			$action = 'toggle';
-		}
-		elseif(\Input::get('key'))
-		{
-			$action = \Input::get('key');
-		}
-		elseif(!\Input::get('act'))
-		{
-			$action = 'showAll';
-		}
-
-		return $action;
+		return in_array($this->controller->getRequestAction(), $this->service->getProperty('actions'));
 	}
 
 

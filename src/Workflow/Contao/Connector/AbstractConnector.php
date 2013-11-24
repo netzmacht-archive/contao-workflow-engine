@@ -62,11 +62,14 @@ abstract class AbstractConnector implements ConnectorInterface
 	 * Will be called by the onload_callback
 	 *
 	 * @param $dc
+	 * @return bool
 	 */
 	public function initialize($dc)
 	{
 		$this->initializeParameters();
 		$this->initializeDefinition($dc);
+
+		return $this->initializeController($dc);
 	}
 
 
@@ -75,7 +78,8 @@ abstract class AbstractConnector implements ConnectorInterface
 	 */
 	protected function initializeParameters()
 	{
-		$this->action = \Input::get('key') == '' ? \Input::get('act') : \Input::get('key');
+		// TODO: Check if all actions are recognised
+		$this->action = \Input::get('key') == '' ? \Input::get('act') : 'key_' . \Input::get('key');
 
 		$this->parentView = in_array($this->action, array(null, 'select', 'create'))
 			|| ($this->action == 'paste' && \Input::get('mode') == 'create');
@@ -98,6 +102,43 @@ abstract class AbstractConnector implements ConnectorInterface
 	 * @param $dc
 	 */
 	abstract protected function initializeDefinition($dc);
+
+
+	/**
+	 * Initialize workflow controller
+	 *
+	 * @return bool if initialisation was successful
+	 */
+	protected function initializeController()
+	{
+		$this->controller = $GLOBALS['container']['workflow.controller'];
+		$this->controller->setRequestAction($this->action);
+
+		$entity = $this->initializeEntity();
+
+		if($entity)
+		{
+			$state = $this->controller->initialize($entity, false);
+
+			if($state)
+			{
+				if(!$state->getSuccessFul())
+				{
+					$this->error($state->getErrors());
+				}
+
+				return $state->getSuccessful();
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * @return \DcGeneral\Data\ModelInterface|null
+	 */
+	abstract protected function initializeEntity();
 
 
 	/**
