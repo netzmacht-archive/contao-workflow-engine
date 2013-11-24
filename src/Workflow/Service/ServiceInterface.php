@@ -25,10 +25,10 @@ interface ServiceInterface
 	 */
 	public function __construct(EntityInterface $service, Controller $controller);
 
+
 	/**
 	 * The initialize is used for registering all listeners depending
 	 * on the current model and workflow to the dispatcher
-	 *
 	 */
 	public function initialize();
 

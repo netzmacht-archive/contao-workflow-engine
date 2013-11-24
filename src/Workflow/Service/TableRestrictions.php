@@ -9,8 +9,8 @@
 namespace Workflow\Service;
 
 use DcaTools\Definition;
-use DcaTools\Event\Listener\DataContainer;
 use DcaTools\Event\PermissionEvent;
+use DcaTools\Listener\DataContainerListener;
 
 class TableRestrictions extends AbstractService
 {
@@ -20,7 +20,7 @@ class TableRestrictions extends AbstractService
 		'drivers'   => array('Table'),
 		'config'    => array
 		(
-			'scope'  => array('steps', 'roles'),
+			'scope'  => array('steps', 'roles', 'addFilter'),
 			'config' => array('table_restrictions', 'table_operations', 'table_globalOperations'),
 		),
 	);
@@ -61,9 +61,9 @@ class TableRestrictions extends AbstractService
 
 		foreach($operations as $operation)
 		{
-			if($definition->hasOperation($operation, 'global'))
+			if($definition->hasGlobalOperation($operation))
 			{
-				$definition->getOperation($operation, 'global')->remove();
+				$definition->getGlobalOperation($operation)->remove();
 			}
 		}
 
@@ -80,7 +80,7 @@ class TableRestrictions extends AbstractService
 			if($this->service->getProperty('tableName') == \Input::get('table'))
 			{
 				$event = new PermissionEvent($this->controller->getCurrentModel()->getEntity(), array('error' => ''));
-				DataContainer::forbidden($event, array('act' => 'paste'));
+				DataContainerListener::forbidden($event, array('act' => 'paste'));
 			}
 		}
 	}
