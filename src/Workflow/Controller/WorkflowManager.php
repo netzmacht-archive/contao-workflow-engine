@@ -207,7 +207,7 @@ class WorkflowManager
 		{
 			if($workflow::isEntitySupported($entity))
 			{
-				$type[] = $workflow::getIdentifier();
+				$types[] = $workflow::getIdentifier();
 			}
 		}
 

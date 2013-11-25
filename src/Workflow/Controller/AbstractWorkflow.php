@@ -187,6 +187,45 @@ abstract class AbstractWorkflow implements WorkflowInterface
 
 
 	/**
+	 * Consider whether model is assigned to workflow
+	 *
+	 * @param EntityInterface $entity
+	 * @return bool
+	 */
+	public function isAssigned(EntityInterface $entity)
+	{
+		$config = static::getConfig($entity->getProviderName());
+
+		if($config)
+		{
+			if($config['assignment'])
+			{
+				return $this->isEntityAssigned($entity);
+			}
+
+			$parent = $this->getParent($entity);
+
+			if($parent)
+			{
+				return $this->isAssigned($parent);
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * @param EntityInterface $entity
+	 * @return bool
+	 */
+	protected function isEntityAssigned(EntityInterface $entity)
+	{
+		return ($entity->getProperty('addWorkflow') && $entity->getProperty('workflow') == $this->workflow->getId());
+	}
+
+
+	/**
 	 * Initialize workflow services
 	 */
 	protected function initializeServices()

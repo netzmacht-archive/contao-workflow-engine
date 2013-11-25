@@ -64,6 +64,7 @@ class NewsWorkflow extends AbstractWorkflow
 				return array
 				(
 					'parent'        => 'tl_news',
+					'assignment'    => false,
 					'publishColumn' => 'invisible',
 					'publishMode'   => static::PUBLISH_MODE_INVERTED,
 					'ownerColumn'   => false,
@@ -74,6 +75,7 @@ class NewsWorkflow extends AbstractWorkflow
 				return array
 				(
 					'parent'        => 'tl_news_archive',
+					'assignment'    => false,
 					'publishColumn' => 'published',
 					'publishMode'   => static::PUBLISH_MODE_DEFAULT,
 					'ownerColumn'   => 'author',
@@ -84,6 +86,7 @@ class NewsWorkflow extends AbstractWorkflow
 				return array
 				(
 					'parent'        => false,
+					'assignment'    => true,
 					'publishColumn' => 'published',
 					'publishMode'   => static::PUBLISH_MODE_UNSUPPORTED,
 					'ownerColumn'   => false,
@@ -93,83 +96,6 @@ class NewsWorkflow extends AbstractWorkflow
 			default:
 				return false;
 		}
-	}
-
-
-	/**
-	 * Consider whether model is assigned to workflow
-	 *
-	 * @param EntityInterface $entity
-	 * @return bool
-	 */
-	public function isAssigned(EntityInterface $entity)
-	{
-		switch($entity->getProviderName())
-		{
-			case 'tl_news_archive':
-				return ($entity->getProperty('addWorkflow') && $entity->getProperty('workflow') == $this->workflow->getId());
-				break;
-
-			case 'tl_news':
-				return $this->isNewsAssigned($entity);
-				break;
-
-			case 'tl_content':
-				return $this->isContentElementAssigned($entity);
-				break;
-		}
-
-		return false;
-	}
-
-
-	/**
-	 * Consider whether page is assigned
-	 *
-	 * @param EntityInterface $entity
-	 * @return bool
-	 */
-	protected function isNewsArchiveAssigned(EntityInterface $entity)
-	{
-
-	}
-
-
-	/**
-	 * Consider whether article is assigned
-	 *
-	 * @param EntityInterface $entity
-	 * @return bool
-	 */
-	protected function isNewsAssigned(EntityInterface $entity)
-	{
-		$page = $this->loadParent($entity);
-
-		if($page)
-		{
-			return $this->isNewsArchiveAssigned($page);
-		}
-
-		return false;
-	}
-
-
-	/**
-	 * Consider whether content element is assigned
-	 *
-	 * @param EntityInterface $entity
-	 * @return bool
-	 */
-	protected function isContentElementAssigned(EntityInterface $entity)
-	{
-		$news = $this->loadParent($entity);
-
-		if($news)
-		{
-			return $this->isNewsAssigned($news);
-		}
-
-		return false;
 	}
 
 
