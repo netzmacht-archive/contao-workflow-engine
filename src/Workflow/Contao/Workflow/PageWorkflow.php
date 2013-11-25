@@ -5,46 +5,32 @@ namespace Workflow\Contao\Workflow;
 use DcaTools\Data\ConfigBuilder;
 use DcaTools\Definition;
 use DcGeneral\Data\ModelInterface as EntityInterface;
-use Workflow\Controller\Controller;
-use Workflow\Event\WorkflowTypeEvent;
 use Workflow\Controller\AbstractWorkflow;
 
 
 class PageWorkflow extends AbstractWorkflow
 {
 
-
-	/**
-	 * Bootstrap Page workflow
-	 *
-	 * @param Controller $controller
-	 */
-	public static function bootstrap(Controller $controller)
-	{
-		$controller->getEventDispatcher()->addListener('workflow.controller.get-workflow-types', array(__CLASS__, 'listenerGetWorkflowType'));
-
-		$article    = \DcaTools\Controller::getInstance('tl_article');
-		$article->enableLabelEvents();
-	}
-
-
 	/**
 	 * Listener for get workflow type event
 	 *
-	 * @param WorkflowTypeEvent $event
+	 * @param EntityInterface $entity
+	 * @return bool
 	 */
-	public static function listenerGetWorkflowType(WorkflowTypeEvent $event)
+	public static function isEntitySupported(EntityInterface $entity)
 	{
-		$providerName = $event->getEntity()->getProviderName();
+		$providerName = $entity->getProviderName();
 
 		if(in_array($providerName, array('tl_page', 'tl_article')))
 		{
-			$event->addType(static::getIdentifier());
+			return true;
 		}
-		elseif($providerName == 'tl_content' && in_array($event->getEntity()->getProperty('ptable'), array('', 'tl_article')))
+		elseif($providerName == 'tl_content' && in_array($entity->getProperty('ptable'), array('', 'tl_article')))
 		{
-			$event->addType(static::getIdentifier());
+			return true;
 		}
+
+		return false;
 	}
 
 

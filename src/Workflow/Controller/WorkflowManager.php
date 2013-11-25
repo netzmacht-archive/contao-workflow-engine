@@ -10,7 +10,6 @@ namespace Workflow\Controller;
 
 use DcaTools\Data\ConfigBuilder;
 use DcGeneral\Data\ModelInterface as EntityInterface;
-use Workflow\Event\WorkflowTypeEvent;
 use Workflow\Exception\WorkflowException;
 
 class WorkflowManager
@@ -44,19 +43,6 @@ class WorkflowManager
 	{
 		$this->controller = $controller;
 		$this->driver     = $controller->getDataProvider('tl_workflow');
-	}
-
-
-	/**
-	 * Bootstrap all available workflows
-	 */
-	public function bootstrap()
-	{
-		/** @var \Workflow\Controller\WorkflowInterface $workflow */
-		foreach($GLOBALS['TL_WORKFLOWS'] as $workflow)
-		{
-			$workflow::bootstrap($this->controller);
-		}
 	}
 
 
@@ -214,11 +200,18 @@ class WorkflowManager
 	 */
 	protected function getWorkflowTypes(EntityInterface $entity)
 	{
-		$eventName = 'workflow.get-workflow-types';
-		$event     = new WorkflowTypeEvent($entity);
+		$types = array();
 
-		$this->controller->getEventDispatcher()->dispatch($eventName, $event);
-		return $event->getTypes();
+		/** @var \Workflow\Controller\WorkflowInterface $workflow */
+		foreach($GLOBALS['TL_WORKFLOWS'] as $workflow)
+		{
+			if($workflow::isEntitySupported($entity))
+			{
+				$type[] = $workflow::getIdentifier();
+			}
+		}
+
+		return $types;
 	}
 
 

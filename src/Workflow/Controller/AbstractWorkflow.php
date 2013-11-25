@@ -8,7 +8,7 @@ use Workflow\Handler\ProcessFactory;
 use Workflow\Handler\ProcessHandler;
 use Workflow\Service\ServiceFactory;
 
-abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListenerInterface
+abstract class AbstractWorkflow implements WorkflowInterface
 {
 
 	/**
@@ -58,20 +58,6 @@ abstract class AbstractWorkflow implements WorkflowInterface, GetWorkflowListene
 			$this->processes[$process['table']] = $process['process'];
 			$this->storeData[$process['table']] = (int) $process['data'];
 		}
-	}
-
-
-	/**
-	 * Bootstrap workflow
-	 *
-	 * @param Controller $controller
-	 */
-	public static function bootstrap(Controller $controller)
-	{
-		$eventName = 'workflow.get-workflow-types';
-		$listener  = array(get_called_class(), 'listenerGetWorkflowType');
-
-		$controller->getEventDispatcher()->addListener($eventName, $listener);
 	}
 
 

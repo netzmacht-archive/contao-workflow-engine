@@ -20,6 +20,8 @@ Components
 
  * Knows about relations between tables and which features are supported (auto publishing)
  * Use shipped workflow (currently a news workflow is implemented) or create the one you need to
+ * There can be only one workflow being responsible for an entity. It is possible to assign multiple workflows
+ which could be assigned, using a priority value for detecting one
 
 ### Services
 
@@ -49,7 +51,7 @@ Processes are not assigned to any specific table or workflow. Each process can b
 
 For developers
 ----------
- * Is based on the data providers and models of DC_General
+ * Is based on the data providers and models of [DC_General](https://github.com/MetaModels/DC_General)
  * So it is database/table independent and could be used for almost everything
  * Uses [contao-community-alliance/event-dispatcher](https://github.com/contao-community-alliance/event-dispatcher)
  * Uses [contao-communtiy-alliance/dependency-container](contao-communtiy-alliance/dependency-container)
@@ -60,10 +62,9 @@ Events uses the prefix "workflow.*" and are assigned to the global event dispatc
 in your own extensions easily.
 
 *Global events*
- * `workflow.controller.get-workflow-types` is used for prefilter the possible workflows for an entity
  * `workflow.check_credentials` is called when checking user credentials
 
-*Process spcific events*
+*Process specific events*
 Events are triggered for each process name. So each listener has to decide for itself if the given table is the one it
 listens to.
 
@@ -73,7 +74,7 @@ listens to.
 * `workflow.PROCESS_NAME.STEP_NAME.STATE_NAME.pre_validation` called before the process handler tries to validate
 * `workflow.PROCESS_NAME.STEP_NAME.STATE_NAME.pre_validation_fail` called if pre_validation fails
 
-Usually the services register their listeners for themselve. But their is not limit that you have to use any services.
+Usually the services register their listeners for themselves. But their is not limit that you have to use any services.
 
 Usage
 --------------

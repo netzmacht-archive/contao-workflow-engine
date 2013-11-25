@@ -6,7 +6,6 @@ use DcaTools\Data\ConfigBuilder;
 use DcaTools\Definition;
 use DcGeneral\Data\ModelInterface as EntityInterface;
 use Workflow\Controller\AbstractWorkflow;
-use Workflow\Event\WorkflowTypeEvent;
 use Workflow\Model\Model;
 
 
@@ -16,20 +15,23 @@ class NewsWorkflow extends AbstractWorkflow
 	/**
 	 * Listener for get workflow type event
 	 *
-	 * @param WorkflowTypeEvent $event
+	 * @param EntityInterface $entity
+	 * @return bool
 	 */
-	public static function listenerGetWorkflowType(WorkflowTypeEvent $event)
+	public static function isEntitySupported(EntityInterface $entity)
 	{
-		$providerName = $event->getEntity()->getProviderName();
+		$providerName = $entity->getProviderName();
 
 		if(in_array($providerName, array('tl_news_archive', 'tl_news')))
 		{
-			$event->addType(static::getIdentifier());
+			return true;
 		}
-		elseif($providerName == 'tl_content' && $event->getEntity()->getProperty('ptable') == 'tl_news')
+		elseif($providerName == 'tl_content' && $entity->getProperty('ptable') == 'tl_news')
 		{
-			$event->addType(static::getIdentifier());
+			return true;
 		}
+
+		return false;
 	}
 
 
@@ -105,7 +107,7 @@ class NewsWorkflow extends AbstractWorkflow
 		switch($entity->getProviderName())
 		{
 			case 'tl_news_archive':
-				return $this->isNewsArchiveAssigned($entity);
+				return ($entity->getProperty('addWorkflow') && $entity->getProperty('workflow') == $this->workflow->getId());
 				break;
 
 			case 'tl_news':
@@ -129,7 +131,7 @@ class NewsWorkflow extends AbstractWorkflow
 	 */
 	protected function isNewsArchiveAssigned(EntityInterface $entity)
 	{
-		return ($entity->getProperty('addWorkflow') && $entity->getProperty('workflow') == $this->workflow->getId());
+
 	}
 
 

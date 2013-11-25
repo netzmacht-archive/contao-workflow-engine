@@ -81,7 +81,6 @@ class Controller
 		// DO NOT call setController before objects are assigned to controller
 		$this->workflowManager = $workflowManager;
 		$this->workflowManager->setController($this);
-		$this->workflowManager->bootstrap($this);
 	}
 
 
@@ -119,7 +118,7 @@ class Controller
 	 * @param EntityInterface $entity
 	 * @return bool
 	 */
-	protected function isInitialized(EntityInterface $entity)
+	public function isInitialized(EntityInterface $entity)
 	{
 		if($this->currentModel)
 		{

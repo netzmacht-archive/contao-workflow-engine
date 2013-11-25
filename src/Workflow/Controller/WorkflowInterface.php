@@ -43,21 +43,18 @@ interface WorkflowInterface
 
 
 	/**
-	 * Bootstrap the workflow will be called no matter if workflow is assigned to an entity or not
-	 *
-	 * Useful for registering some events
-	 *
-	 * @param Controller $controller
-	 */
-	public static function bootstrap(Controller $controller);
-
-
-	/**
 	 * Get tables which are supported by the workflow
 	 *
 	 * @return array
 	 */
 	public static function getSupportedDataContainers();
+
+
+	/**
+	 * @param EntityInterface $entity
+	 * @return mixed
+	 */
+	public static function isEntitySupported(EntityInterface $entity);
 
 
 	/**
