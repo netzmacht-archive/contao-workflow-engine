@@ -2,6 +2,7 @@
 
 namespace Workflow\Contao\Connector;
 
+use DcaTools\DcaTools;
 use Workflow\Entity\ModelState;
 use Workflow\Exception\WorkflowException;
 
@@ -77,10 +78,16 @@ abstract class AbstractConnector implements ConnectorInterface
 		// TODO: Check if all actions are recognised
 		$this->action = \Input::get('key') == '' ? \Input::get('act') : 'key_' . \Input::get('key');
 
-		$this->parentView = in_array($this->action, array(null, 'select', 'create'))
+		$this->parentView = in_array($this->action, array(null, 'select', 'create', 'editAll', 'deleteAll'))
 			|| ($this->action == 'paste' && \Input::get('mode') == 'create');
 
-		if(\Input::get('tid') != null)
+		// This is required because Contao uses the Get ID for check permission against the first module table
+		// if key=dosomething is called
+		if(\Input::get('wfid'))
+		{
+			$this->id = \Input::get('wfid');
+		}
+		elseif(\Input::get('tid') != null)
 		{
 			$this->action = 'toggle';
 			$this->id = \Input::get('tid');
@@ -139,18 +146,35 @@ abstract class AbstractConnector implements ConnectorInterface
 
 
 	/**
+	 * @return \Workflow\Controller\Controller
+	 */
+	public function getController()
+	{
+		return $this->controller;
+	}
+
+
+	/**
 	 * Reach next step
 	 *
 	 * @param string $stateName
 	 * @param bool $redirect if true redirect to referer
+	 * @param bool $verbose if true state message are displayed in the backend
+	 * @return \Workflow\Entity\ModelState
 	 */
-	public function reachNextState($stateName, $redirect=false)
+	public function reachNextState($stateName, $redirect=false, $verbose=false)
 	{
 		try {
-			$this->controller->reachNextState($stateName);
+			$state = $this->controller->reachNextState($stateName);
 		}
 		catch(WorkflowException $e) {
 			$this->error($e->getMessage());
+			return null;
+		}
+
+		if($verbose && $state->getErrors())
+		{
+			\Message::addError($state->getErrors());
 		}
 
 		// redirect to referrer by default. If another target is required, the listener has to redirect
@@ -158,6 +182,8 @@ abstract class AbstractConnector implements ConnectorInterface
 		{
 			\Controller::redirect(\Controller::getReferer());
 		}
+
+		return $state;
 	}
 
 
@@ -169,7 +195,7 @@ abstract class AbstractConnector implements ConnectorInterface
 	 */
 	public static function error($message, $redirect=true)
 	{
-		\DcaTools\Controller::error($message, $redirect);
+		DcaTools::error($message, $redirect);
 	}
 
 

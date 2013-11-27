@@ -43,8 +43,15 @@ interface ConnectorInterface
 
 
 	/**
+	 * @return \Workflow\Controller\Controller
+	 */
+	public function getController();
+
+
+	/**
 	 * @param $stateName
 	 * @param bool $redirect
+	 * @return \Workflow\Entity\ModelState
 	 */
 	public function reachNextState($stateName, $redirect=false);
 

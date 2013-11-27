@@ -162,7 +162,7 @@ class TableConnector extends AbstractConnector
 			{
 				if($this->hasState('change'))
 				{
-					$this->reachNextState('change');
+					$this->reachNextState('change', false, true);
 					$this->reachedChanged = true;
 				}
 			}
@@ -188,6 +188,8 @@ class TableConnector extends AbstractConnector
 			$driver = $this->controller->getDataProvider('tl_workflow_state');
 			$driver->save($state);
 		}
+
+		$this->reachedChanged = false;
 	}
 
 

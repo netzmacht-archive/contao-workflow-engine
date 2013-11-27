@@ -41,15 +41,7 @@ class GeneralConnector extends AbstractConnector
 	 */
 	protected function initializeDefinition($dc)
 	{
-		/** @var \Pimple $container */
-		global $container;
-
-		// no need for own driver manager, use Dc_General
-		$GLOBALS['container']['dcatools.driver-manager'] = $container->share(function() use($dc) {
-			return $dc;
-		});
-
-		$this->definition = Definition::getDataContainer($dc->getName());
+		//$this->definition = Definition::getDataContainer($dc->getName());
 	}
 
 
