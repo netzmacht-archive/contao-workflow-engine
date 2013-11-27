@@ -2,10 +2,10 @@
 
 namespace Workflow\Service;
 
-use DcaTools\Controller;
+use DcaTools\DcaTools;
 use DcaTools\Definition;
 use DcaTools\Event\GenerateEvent;
-use DcaTools\Listener\ListenerHelper;
+use DcaTools\Helper\EventListener;
 use DcGeneral\Data\ModelInterface as EntityInterface;
 
 
@@ -40,7 +40,7 @@ class ItemRestrictions extends AbstractService
 		//$this->controller->getEventDispatcher()->addListener('workflow.check_credentials', array($this, 'checkCredentials'));
 
 		/** @var \DcaTools\Definition\DataContainer $definition */
-		$controller  = Controller::getInstance($this->service->getProperty('tableName'));
+		$controller  = DcaTools::getInstance($this->service->getProperty('tableName'));
 		$definition  = $controller->getDefinition();
 		$operations  = deserialize($this->service->getProperty('table_operations'), true);
 
@@ -53,10 +53,10 @@ class ItemRestrictions extends AbstractService
 				$config   = array();
 				$config['callback'] = function(GenerateEvent $event) use($service)
 				{
-					return $this->isAssigned($event->getSubject()->getModel());
+					return $this->isAssigned($event->getController()->getModel());
 				};
 
-				$listener = ListenerHelper::createConfigurableListener($listener, $config);
+				$listener = EventListener::createConfigurableListener($listener, $config);
 				$controller->addOperationListener($operation, $listener);
 			}
 		}
@@ -74,7 +74,7 @@ class ItemRestrictions extends AbstractService
 			$user    = \BackendUser::getInstance();
 			$message = 'User "%s (%s)" has not enough permission to run action "%s"';
 
-			\DcaTools\Controller::error(sprintf($message, $user->username, $user->id, $this->controller->getRequestAction()));
+			DcaTools::error(sprintf($message, $user->username, $user->id, $this->controller->getRequestAction()));
 		}
 	}
 

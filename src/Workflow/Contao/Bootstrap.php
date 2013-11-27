@@ -28,7 +28,6 @@ class Bootstrap
 				$definition    = Definition::getDataContainer($name);
 				$dataContainer = $definition->get('config/dataContainer');
 
-				// TODO: Should we allow other driver as well?
 				if(isset($GLOBALS['TL_WORKFLOW_CONNECTORS'][$dataContainer]))
 				{
 					/** @var \Workflow\Contao\Connector\ConnectorInterface $class */

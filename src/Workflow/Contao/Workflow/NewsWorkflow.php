@@ -56,6 +56,10 @@ class NewsWorkflow extends AbstractWorkflow
 	}
 
 
+	/**
+	 * @param $tableName
+	 * @return array|bool
+	 */
 	public static function getConfig($tableName)
 	{
 		switch($tableName)

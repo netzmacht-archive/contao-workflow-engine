@@ -2,9 +2,8 @@
 
 namespace Workflow\Service;
 
+use DcaTools\DcaTools;
 use DcaTools\Definition;
-use DcaTools\Event\PermissionEvent;
-use DcaTools\Listener\DataContainerListener;
 
 
 /**
@@ -44,7 +43,7 @@ class TableRestrictions extends AbstractService
 	 */
 	function initialize()
 	{
-		if(!$this->applyService())
+		if(!$this->applyService() || !$this->applyFilter($this->controller->getCurrentModel()->getEntity()))
 		{
 			return;
 		}
@@ -89,8 +88,9 @@ class TableRestrictions extends AbstractService
 			// pass an permission event manually because check permission of DcaTools has already passed
 			if($this->service->getProperty('tableName') == \Input::get('table'))
 			{
-				$event = new PermissionEvent($this->controller->getCurrentModel()->getEntity(), array('error' => ''));
-				DataContainerListener::forbidden($event, array('act' => 'paste'));
+				if($this->controller->getRequestAction() == 'paste') {
+					DcaTools::error('Not enough permissions to change sorting');
+				}
 			}
 		}
 	}

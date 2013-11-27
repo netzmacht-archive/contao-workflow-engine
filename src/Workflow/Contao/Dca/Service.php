@@ -4,8 +4,7 @@ namespace Workflow\Contao\Dca;
 
 use DcaTools\Data\ConfigBuilder;
 use DcaTools\Definition;
-use DcaTools\DynamicParent;
-use DcaTools\Translator;
+use DcaTools\Helper\Formatter;
 use Workflow\Handler\ProcessFactory;
 
 
@@ -24,7 +23,7 @@ class Service extends Generic
 
 
 	/**
-	 * @var \Workflow\Service\Config
+	 * @var array
 	 */
 	protected $config;
 
@@ -398,16 +397,16 @@ class Service extends Generic
 			}
 
 			$definition = Definition::getDataContainer($table);
-			$translator = Translator::create($table);
+			$formatter = Formatter::create($table);
 
 			foreach($definition->getGlobalOperationNames() as $operation)
 			{
-				$operations[$table . ' (global)'][$table . '::global::' . $operation] = $translator->globalOperation($operation);
+				$operations[$table . ' (global)'][$table . '::global::' . $operation] = $formatter->getGlobalOperationLabel($operation);
 			}
 
 			foreach($definition->getOperationNames() as $operation)
 			{
-				$operations[$table . ' (local)'][$table . '::local::' . $operation] = $translator->operation($operation);
+				$operations[$table . ' (local)'][$table . '::local::' . $operation] = $formatter->getOperationLabel($operation);
 			}
 		}
 

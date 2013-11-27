@@ -9,7 +9,7 @@
 namespace Workflow\Contao\Dca;
 
 
-use DcaTools\Translator;
+use DcaTools\Helper\Formatter;
 
 class Process
 {
@@ -38,21 +38,20 @@ class Process
 	 * Generate step list, called by dcawizard
 	 *
 	 * @param $records
-	 * @param $id
 	 * @return string
 	 */
-	public function generateStepList($records, $id)
+	public function generateStepList($records)
 	{
 
 		$template = new \BackendTemplate('be_workflow_steplist');
 		$template->records = $records;
 
-		$translator = Translator::create('tl_workflow_step');
+		$formatter = Formatter::create('tl_workflow_step');
 
-		$template->stepLabel = $translator->property('label');
-		$template->rolesLabel = $translator->property('roles');
-		$template->endLabel = $translator->property('end');
-		$template->startLabel = $translator->property('start');
+		$template->stepLabel  = $formatter->getPropertyLabel('label');
+		$template->rolesLabel = $formatter->getPropertyLabel('roles');
+		$template->endLabel   = $formatter->getPropertyLabel('end');
+		$template->startLabel = $formatter->getPropertyLabel('start');
 
 		$template->steps = $GLOBALS['TL_LANG']['workflow']['steps'];
 

@@ -8,7 +8,7 @@
 
 namespace Workflow\Contao\Dca;
 
-use DcaTools\Translator;
+use DcaTools\Helper\Formatter;
 
 class Step
 {
@@ -30,8 +30,8 @@ class Step
 
 	public function generateChildRecord($row)
 	{
-		$translator = Translator::create('tl_workflow_step');
-		$return = $translator->value('name', $row['name']);
+		$formatter = Formatter::create('tl_workflow_step');
+		$return = $formatter->getPropertyValue('name', $row['name']);
 
 		if($row['start'] || $row['end'])
 		{
@@ -40,7 +40,7 @@ class Step
 
 			if($row['start'])
 			{
-				$return .=  $translator->property('start');
+				$return .=  $formatter->getPropertyLabel('start');
 
 				if($row['end'])
 				{
@@ -50,7 +50,7 @@ class Step
 
 			if($row['end'])
 			{
-				$return .=  $translator->property('end');
+				$return .=  $formatter->getPropertyLabel('end');
 			}
 
 			$return .= ']</span>';
@@ -60,12 +60,12 @@ class Step
 	}
 
 
-	public function getSteps($dc)
+	public function getSteps()
 	{
 		return $GLOBALS['TL_CONFIG']['workflow_steps'];
 	}
 
-	public function getStates($dc)
+	public function getStates()
 	{
 		return $GLOBALS['TL_CONFIG']['workflow_actions'];
 	}

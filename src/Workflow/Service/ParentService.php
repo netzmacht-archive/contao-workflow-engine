@@ -90,24 +90,16 @@ class ParentService extends AbstractService
 	 */
 	public function initialize()
 	{
-		if(!$this->isAssigned($this->controller->getCurrentModel()->getEntity()))
-		{
-			return;
-		}
-
 		$table      = $this->service->getProperty('tableName');
 		$definition = Definition::getDataContainer($table);
 		$config     = $this->controller->getCurrentWorkflow()->getConfig($table);
 
-		if($config['parent'])
-		{
+		if($config['parent']) {
 			$class = get_class($this);
 			$this->parent = $config['parent'];
 
-			foreach($definition->getProperties() as $property)
-			{
-				if($property->isEditable())
-				{
+			foreach($definition->getProperties() as $property) {
+				if($property->isEditable()) {
 					$property->registerCallback('save', array($class, 'callbackSave'));
 				}
 			}
@@ -140,8 +132,7 @@ class ParentService extends AbstractService
 	 */
 	public function callbackOnSubmit($dc)
 	{
-		if($this->changed)
-		{
+		if($this->changed) {
 			$this->callbackRouter($dc);
 		}
 	}
@@ -171,8 +162,7 @@ class ParentService extends AbstractService
 	 */
 	public function callbackSave($value, $dc)
 	{
-		if(!$this->changed)
-		{
+		if(!$this->changed) {
 			// TODO: check which dc is used
 			$entity = $this->getEntity($dc);
 			$this->changed = ($value != $entity->getProperty($dc->field));
@@ -190,8 +180,7 @@ class ParentService extends AbstractService
 	 */
 	protected function getEntity($dc)
 	{
-		if(!$this->entity)
-		{
+		if(!$this->entity) {
 			$this->entity = ModelFactory::byDc($dc);
 		}
 
@@ -204,20 +193,17 @@ class ParentService extends AbstractService
 	 */
 	protected function route(EntityInterface $entity)
 	{
-		if($this->isAssigned($entity))
-		{
+		if($this->isAssigned($entity)) {
 			$workflow = $this->controller->getCurrentWorkflow();
 			$parent   = $workflow->getParent($entity);
 
-			if($parent)
-			{
+			if($parent) {
 				$this->controller->initialize($parent);
 
 				try {
 					$this->controller->reachNextState($this->service->getProperty('state'));
 				}
-				catch(WorkflowException $e)
-				{
+				catch(WorkflowException $e) {
 					AbstractConnector::error($e->getMessage(), false);
 				}
 			}

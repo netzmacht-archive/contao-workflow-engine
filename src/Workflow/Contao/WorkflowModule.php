@@ -37,7 +37,7 @@ class WorkflowModule
 	{
 		if(\Input::get('state'))
 		{
-			$this->connector->reachNextState(\Input::get('state'), true);
+			$this->connector->reachNextState(\Input::get('state'), true, true);
 		}
 	}
 

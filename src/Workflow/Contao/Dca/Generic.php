@@ -101,7 +101,7 @@ class Generic
 		$users   = array();
 		$driver  = $this->manager->getDataProvider('tl_user');
 		$builder = ConfigBuilder::create($driver)
-			->setFields(array('id', 'username', 'name'))
+			->fields('id', 'username', 'name')
 			->sorting('name');
 
 		/** @var \DcGeneral\Data\ModelInterface $user */

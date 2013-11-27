@@ -28,7 +28,7 @@ class Diff
 	 */
 	protected $options = array
 	(
-		'ignore' => array('tstamp', 'id'),
+		'ignore' => array('tstamp'),
 	);
 
 
@@ -66,7 +66,7 @@ class Diff
 	 */
 	public function hasChanges()
 	{
-		return static::sameEntities($this->a, $this->b, $this->options['ignore']);
+		return !static::sameEntities($this->a, $this->b, $this->options['ignore']);
 	}
 
 
@@ -78,17 +78,35 @@ class Diff
 	public function getChangedProperties()
 	{
 		$properties = array();
+		$all        = $this->a->getPropertiesAsArray();
 
-		foreach($this->a as $property => $value)
-		{
-			if(in_array($property, $this->options['ignore']))
-			{
+		// ATTENTION: ID is not compared because the
+		foreach($this->b as $property => $value) {
+			unset($all[$property]);
+
+			if(in_array($property, $this->options['ignore'])) {
 				continue;
 			}
 
-			if($value !== $this->b->getProperty($property))
-			{
-				$properties[$property] = $this->b->getProperty($property);
+			if(!$this->sameValue($value, $this->a->getProperty($property))) {
+				$properties[$property] = $value;
+			}
+		}
+
+		if(!in_array('id', $this->options['ignore'])) {
+			unset($all['id']);
+
+			if(!$this->sameValue($this->b->getId(), $this->a->getId())) {
+				$properties['id'] = $this->b->getId();
+			}
+		}
+
+		// also add properties which existed in a but not in b anymore
+		if(count($all)) {
+			foreach(array_keys($all) as $key) {
+				if(!in_array($key, $this->options['ignore'])) {
+					$properties[$key] = null;
+				}
 			}
 		}
 
@@ -107,20 +125,43 @@ class Diff
 	 */
 	public static function sameEntities(EntityInterface $a, EntityInterface $b, array $ignore=array())
 	{
-		foreach($a as $property => $value)
-		{
-			if(in_array($property, $ignore))
-			{
+		// precondition not the same if different number of properties
+		if(count($a->getPropertiesAsArray()) != count($b->getPropertiesAsArray())) {
+			return false;
+		}
+
+		foreach($a as $property => $value) {
+			if(in_array($property, $ignore)) {
 				continue;
 			}
 
-			if($value !== $b->getProperty($property))
-			{
+			if(!static::sameValue($value, $b->getProperty($property))) {
 				return false;
 			}
 		}
 
 		return true;
+	}
+
+
+	/**
+	 * Compare 2 values
+	 *
+	 * @param $a
+	 * @param $b
+	 * @return bool
+	 */
+	public static function sameValue($a, $b)
+	{
+		if(is_array($a) || is_object($a)) {
+			$a = serialize($a);
+		}
+
+		if(is_array($b) || is_object($b)) {
+			$b = serialize($b);
+		}
+
+		return $a == $b;
 	}
 
 

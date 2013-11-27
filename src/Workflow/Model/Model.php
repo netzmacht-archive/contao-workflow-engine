@@ -13,6 +13,14 @@ use Workflow\Controller\Controller;
  */
 class Model implements ModelInterface
 {
+	const STATUS_DELETED = 'deleted';
+
+	const STATE_CHANGE  = 'change';
+
+	const STATE_DELETE  = 'delete';
+
+	const STATE_RESTORE = 'restore';
+
 
 	/**
 	 * @var \DcGeneral\Data\ModelInterface

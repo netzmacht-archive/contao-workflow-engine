@@ -73,15 +73,13 @@ class ModelStorage
 			->filterEquals('processName', $processName)
 			->sorting('createdAt', DCGE::MODEL_SORTING_DESC);
 
-		if($successOnly)
-		{
+		if($successOnly) {
 			$builder->filterEquals('successful', true);
 		}
 
 		$collection = $this->driver->getEmptyCollection();
 
-		foreach($builder->fetchAll() as $model)
-		{
+		foreach($builder->fetchAll() as $model) {
 			$modelState = new ModelState($model);
 			$collection->add($modelState);
 		}
@@ -125,13 +123,11 @@ class ModelStorage
 			->filterEquals('workflowIdentifier', $model->getWorkflowIdentifier())
 			->idOnly(true);
 
-		if($processName !== null)
-		{
+		if($processName !== null) {
 			$builder->filterEquals('processName', $processName);
 		}
 
-		foreach($builder->fetchAll() as $id)
-		{
+		foreach($builder->fetchAll() as $id) {
 			$this->driver->delete($id);
 		}
 	}
@@ -176,8 +172,7 @@ class ModelStorage
 		$modelState->setProperty(DCGE::MODEL_PID, $model->getEntity()->getId());
 		$modelState->setProperty('tstamp', time());
 
-		if ($previous instanceof ModelState)
-		{
+		if ($previous instanceof ModelState) {
 			$modelState->setPrevious($previous);
 		}
 

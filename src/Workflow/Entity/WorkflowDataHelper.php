@@ -2,6 +2,8 @@
 
 namespace Workflow\Entity;
 
+use DcaTools\Data\ConfigBuilder;
+
 
 /**
  * Class WorkflowDataHelper supports handling for worflow data
@@ -19,7 +21,10 @@ class WorkflowDataHelper
 	 */
 	public static function encode($data)
 	{
-		if($GLOBALS['TL_CONFIG']['worflow_dataEncoding'] == 'php')
+		if(is_string($data)) {
+			return $data;
+		}
+		elseif($GLOBALS['TL_CONFIG']['worflow_dataEncoding'] == 'php')
 		{
 			return serialize($data);
 		}
@@ -38,7 +43,10 @@ class WorkflowDataHelper
 	 */
 	public static function decode($data)
 	{
-		if($GLOBALS['TL_CONFIG']['worflow_dataEncoding'] == 'php')
+		if(!is_string($data)) {
+			return $data;
+		}
+		elseif($GLOBALS['TL_CONFIG']['worflow_dataEncoding'] == 'php')
 		{
 			return deserialize($data, true);
 		}
@@ -62,16 +70,29 @@ class WorkflowDataHelper
 	{
 		$data   = static::prepareData($tableName, $data);
 		$driver = static::getDataProvider($tableName);
+		$exists = (bool) ConfigBuilder::create($driver)->filterEquals('id', $data[$idColumn])->getCount();
 
 		$model  = $driver->getEmptyModel();
-		$model->setPropertiesAsArray($data);
 
-		if(isset($data[$idColumn]))
-		{
+		if($exists && isset($data[$idColumn])) {
 			$model->setId($data[$idColumn]);
 		}
 
+		$model->setPropertiesAsArray($data);
 		$driver->save($model);
+
+		if(!$exists && isset($data[$idColumn])) {
+			// FIXME: This limit the whole restore feature to only work with database files
+			// FIXME: DefaultDriver does not allow to update the id column
+			$result = \Database::getInstance()
+				->prepare(sprintf('UPDATE %s %s WHERE id=?', $tableName, '%s'))
+				->set(array('id' => $data[$idColumn]))
+				->execute($model->getId());
+
+			// have to clone it, otherwise ID changing is not possible
+			$model = clone $model;
+			$model->setId($data[$idColumn]);
+		}
 
 		return $model;
 	}
@@ -90,6 +111,8 @@ class WorkflowDataHelper
 		{
 			$data = static::decode($data);
 		}
+
+		unset($data['_children']);
 
 		$driver = static::getDataProvider($tableName);
 

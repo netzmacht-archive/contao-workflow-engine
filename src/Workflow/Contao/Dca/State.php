@@ -2,8 +2,8 @@
 
 namespace Workflow\Contao\Dca;
 
-use DcaTools\Helper\BackendBindings;
-use DcaTools\Translator;
+use DcaTools\Helper\Formatter;
+use DcGeneral\Contao\BackendBindings;
 use Workflow\Contao\Data\SerializedDataDriver;
 
 
@@ -86,13 +86,13 @@ class State extends Generic
 	 */
 	public function callbackChildRecord($row)
 	{
-		$translator = Translator::create('tl_workflow_state');
+		$formatter = Formatter::create('tl_workflow_state');
 
 		return sprintf(
 			'%s %s %s %s',
 			\Date::parse($GLOBALS['TL_CONFIG']['datimFormat'], $row['createdAt']),
 			$row['processName'],
-			$translator->value('stepName', $row['stepName']),
+			$formatter->getPropertyValue('stepName', $row['stepName']),
 			$row['successful'] ? $GLOBALS['TL_LANG']['MSC']['yes'] : $GLOBALS['TL_LANG']['MSC']['no']
 		);
 	}
@@ -105,8 +105,8 @@ class State extends Generic
 	 */
 	public function callbackHeader(array $header)
 	{
-		$translator = Translator::create($this->definition->getName());
-		$header[$translator->property('ptable')] = $this->definition->get('config/ptable');
+		$formatter = Formatter::create($this->definition->getName());
+		$header[$formatter->getPropertyLabel('ptable')] = $this->definition->get('config/ptable');
 
 		return $header;
 	}

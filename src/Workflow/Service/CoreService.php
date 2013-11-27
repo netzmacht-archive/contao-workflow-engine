@@ -56,6 +56,8 @@ class CoreService extends AbstractService
 	 */
 	public function checkCredentials(SecurityEvent $event)
 	{
+		$roles = $event->getStep()->getRoles();
+
 		if(empty($roles) ||
 			$this->controller->getUser()->hasRole($event->getProcessName(), UserInterface::ROLE_ADMIN) ||
 			$this->controller->getUser()->hasRole($event->getProcessName(), $event->getStep()->getRoles()))
